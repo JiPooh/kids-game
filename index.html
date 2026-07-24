@@ -4,214 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>토끼랑 놀이터</title>
-<style>
-  :root{
-    --sky:#BFE9FF;
-    --sun:#FFD966;
-    --coral:#FF8FA3;
-    --grass:#8CD790;
-    --plum:#5B3A6E;
-    --cream:#FFF8EC;
-  }
-  html,body{
-    margin:0; padding:0; width:100%; height:100%;
-    overscroll-behavior:none;
-    touch-action:none;
-    -webkit-user-select:none; user-select:none;
-    -webkit-touch-callout:none;
-    background:var(--sky);
-    font-family:"Baloo 2","Comic Sans MS","Trebuchet MS",ui-rounded,sans-serif;
-    overflow:hidden;
-  }
-  #app{
-    position:fixed; inset:0;
-    width:100%; height:100%;
-  }
-  .screen{
-    position:absolute; inset:0;
-    display:none;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-  }
-  .screen.active{ display:flex; }
-
-  /* ---------- HOME ---------- */
-  #home{
-    background:linear-gradient(180deg,var(--sky) 0%,#E4F6FF 100%);
-    gap:18px;
-  }
-  #home h1{
-    color:var(--plum);
-    font-size:clamp(28px,7vw,48px);
-    margin:0 0 6px 0;
-    text-shadow:0 3px 0 rgba(255,255,255,0.6);
-  }
-  #home .sub{
-    color:var(--plum);
-    opacity:0.7;
-    font-size:clamp(14px,3vw,18px);
-    margin-bottom:10px;
-  }
-  .card-row{
-    display:flex;
-    gap:22px;
-    flex-wrap:wrap;
-    justify-content:center;
-    padding:0 16px;
-  }
-  .game-card{
-    width:min(30vw,180px);
-    height:min(30vw,180px);
-    min-width:130px; min-height:130px;
-    border-radius:32px;
-    border:none;
-    display:flex; flex-direction:column;
-    align-items:center; justify-content:center;
-    gap:8px;
-    box-shadow:0 8px 0 rgba(0,0,0,0.12), 0 10px 20px rgba(0,0,0,0.08);
-    transform:translateY(0);
-    transition:transform .12s ease;
-    cursor:pointer;
-  }
-  .game-card:active{ transform:translateY(6px); box-shadow:0 2px 0 rgba(0,0,0,0.12); }
-  .game-card .emoji{ font-size:clamp(36px,8vw,54px); }
-  .game-card .label{ color:white; font-weight:bold; font-size:clamp(13px,2.6vw,17px); text-align:center; padding:0 8px; }
-  .game-card.ready{ background:var(--coral); }
-  .game-card.soon{ background:#B9AFC7; opacity:0.85; }
-  .game-card .badge{
-    font-size:11px; background:rgba(255,255,255,0.85); color:var(--plum);
-    padding:3px 10px; border-radius:20px; font-weight:bold;
-  }
-
-  /* ---------- CHARACTER PICKER ---------- */
-  .char-picker{
-    display:flex; gap:14px; margin-bottom:6px;
-  }
-  .char-btn{
-    width:56px; height:56px; border-radius:50%;
-    border:3px solid transparent;
-    background:white;
-    font-size:28px;
-    display:flex; align-items:center; justify-content:center;
-    box-shadow:0 4px 0 rgba(0,0,0,0.1);
-  }
-  .char-btn.selected{
-    border-color:var(--sun);
-    box-shadow:0 4px 0 rgba(0,0,0,0.1), 0 0 0 4px rgba(255,217,102,0.4);
-  }
-
-  /* ---------- BACK BUTTON ---------- */
-  .back-btn{
-    position:absolute; top:16px; left:16px;
-    width:52px; height:52px; border-radius:50%;
-    background:rgba(255,255,255,0.85);
-    border:none;
-    font-size:24px;
-    display:flex; align-items:center; justify-content:center;
-    box-shadow:0 4px 0 rgba(0,0,0,0.1);
-    z-index:50;
-  }
-
-  /* ---------- SENSORY GAME ---------- */
-  #game-sensory{
-    background:var(--cream);
-    transition:background-color .4s ease;
-    position:absolute; inset:0;
-  }
-  #bunny-wrap{
-    position:absolute; left:50%; top:50%;
-    transform:translate(-50%,-50%);
-    width:38vmin; height:38vmin;
-    pointer-events:none;
-  }
-  #bunny-wrap svg{ width:100%; height:100%; overflow:visible; }
-  .ear{ transform-origin:50% 100%; }
-  #bunny-wrap.happy .ear-l{ animation:wiggleL .5s ease; }
-  #bunny-wrap.happy .ear-r{ animation:wiggleR .5s ease; }
-  #bunny-wrap.happy #bunny-body{ animation:bounce .5s ease; }
-  @keyframes wiggleL{ 0%{transform:rotate(0)} 30%{transform:rotate(-18deg)} 60%{transform:rotate(10deg)} 100%{transform:rotate(0)} }
-  @keyframes wiggleR{ 0%{transform:rotate(0)} 30%{transform:rotate(18deg)} 60%{transform:rotate(-10deg)} 100%{transform:rotate(0)} }
-  @keyframes bounce{ 0%{transform:translateY(0)} 40%{transform:translateY(-4%)} 100%{transform:translateY(0)} }
-
-  .particle{
-    position:absolute;
-    border-radius:50%;
-    pointer-events:none;
-    will-change:transform,opacity;
-  }
-
-  #sound-gate{
-    position:absolute; inset:0;
-    background:rgba(91,58,126,0.92);
-    display:flex; align-items:center; justify-content:center;
-    flex-direction:column; gap:16px;
-    color:white; text-align:center; z-index:100;
-  }
-  #sound-gate .tap-btn{
-    background:var(--sun); color:var(--plum); border:none;
-    font-weight:bold; font-size:20px;
-    padding:16px 32px; border-radius:40px;
-    box-shadow:0 6px 0 rgba(0,0,0,0.15);
-  }
-
-  /* ---------- CARROT FEEDING GAME ---------- */
-  #game-sort{
-    background:linear-gradient(180deg,#DFF6E3 0%,#C9EFD1 100%);
-    position:absolute; inset:0;
-    overflow:hidden;
-  }
-  .sort-counter{
-    position:absolute; top:18px; right:18px;
-    background:white; color:var(--plum); font-weight:bold; font-size:20px;
-    padding:8px 18px; border-radius:24px;
-    box-shadow:0 4px 0 rgba(0,0,0,0.1);
-    z-index:20;
-  }
-  #sort-bunny{
-    position:absolute; left:50%; top:20%;
-    transform:translate(-50%,-50%);
-    width:40vmin; height:40vmin;
-    pointer-events:none;
-    z-index:5;
-  }
-  #sort-bunny svg{ width:100%; height:100%; overflow:visible; }
-  #sort-bunny.eating #sort-body{ animation:bounce .4s ease; }
-  #mouth-shape{ transform-origin:110px 155px; }
-  #sort-bunny.eating #mouth-shape{ animation:chew .4s ease; }
-  @keyframes chew{ 0%{transform:scaleY(1)} 40%{transform:scaleY(0.25)} 100%{transform:scaleY(1)} }
-  #mouth-hit{
-    position:absolute; left:50%; top:70%;
-    width:28%; height:20%;
-    transform:translate(-50%,-50%);
-    pointer-events:none;
-  }
-  .carrot{
-    position:absolute;
-    width:64px; height:96px;
-    touch-action:none;
-    z-index:10;
-    transition:none;
-  }
-  .carrot svg{ width:100%; height:100%; overflow:visible; filter:drop-shadow(0 4px 4px rgba(0,0,0,0.15)); }
-  .carrot.dragging{ z-index:30; }
-  .cheer-text{
-    position:absolute; left:50%; top:38%;
-    transform:translate(-50%,-50%) scale(0.6);
-    color:var(--coral); font-weight:bold; font-size:clamp(24px,6vw,40px);
-    text-shadow:0 3px 0 white, 0 3px 8px rgba(0,0,0,0.15);
-    opacity:0;
-    pointer-events:none;
-    z-index:40;
-  }
-  .cheer-text.show{ animation:cheerPop .9s ease forwards; }
-  @keyframes cheerPop{
-    0%{ opacity:0; transform:translate(-50%,-50%) scale(0.5); }
-    30%{ opacity:1; transform:translate(-50%,-50%) scale(1.1); }
-    70%{ opacity:1; transform:translate(-50%,-50%) scale(1); }
-    100%{ opacity:0; transform:translate(-50%,-60%) scale(1); }
-  }
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div id="app">
@@ -262,7 +55,7 @@
   <!-- GAME 3: CARROT FEEDING -->
   <div class="screen" id="game-sort">
     <button class="back-btn" data-home>←</button>
-    <div class="sort-counter"><span id="sort-count-num">0</span> 🥕</div>
+    <div class="sort-counter"><span id="sort-count-num">0</span> <span id="sort-food-emoji">🥕</span></div>
     <div class="cheer-text" id="cheer-text">잘했어요! 🎉</div>
     <div id="sort-bunny"></div>
   </div>
@@ -277,59 +70,139 @@
   var CHARACTERS = {
     bunny: {
       idle: `
-        <ellipse class="ear ear-l" cx="70" cy="55" rx="16" ry="42" fill="#FFC9D6"/>
-        <ellipse class="ear ear-l" cx="70" cy="55" rx="8" ry="30" fill="#FF8FA3"/>
-        <ellipse class="ear ear-r" cx="130" cy="55" rx="16" ry="42" fill="#FFC9D6"/>
-        <ellipse class="ear ear-r" cx="130" cy="55" rx="8" ry="30" fill="#FF8FA3"/>
+        <defs>
+          <radialGradient id="bunnyIdleBody" cx="42%" cy="32%" r="75%">
+            <stop offset="0%" stop-color="#FFFFFF"/>
+            <stop offset="100%" stop-color="#F7E9F3"/>
+          </radialGradient>
+          <linearGradient id="bunnyIdleEar" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#FFE1EA"/>
+            <stop offset="100%" stop-color="#FFB6C8"/>
+          </linearGradient>
+        </defs>
+        <ellipse cx="100" cy="184" rx="46" ry="9" fill="rgba(91,58,126,0.12)"/>
+        <g class="ear ear-l" transform="rotate(-8 70 96)">
+          <ellipse cx="70" cy="52" rx="17" ry="44" fill="url(#bunnyIdleEar)" stroke="#F3B9CB" stroke-width="1.5"/>
+          <ellipse cx="70" cy="58" rx="8" ry="30" fill="#FF8FA3"/>
+        </g>
+        <g class="ear ear-r" transform="rotate(8 130 96)">
+          <ellipse cx="130" cy="52" rx="17" ry="44" fill="url(#bunnyIdleEar)" stroke="#F3B9CB" stroke-width="1.5"/>
+          <ellipse cx="130" cy="58" rx="8" ry="30" fill="#FF8FA3"/>
+        </g>
         <g id="bunny-body">
-          <ellipse cx="100" cy="130" rx="62" ry="55" fill="#FFFFFF" stroke="#EADFF0" stroke-width="3"/>
+          <ellipse cx="100" cy="130" rx="62" ry="55" fill="url(#bunnyIdleBody)" stroke="#EADFF0" stroke-width="3"/>
+          <path d="M62 96 Q70 84 80 90" stroke="#F3E7F7" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <path d="M138 96 Q130 84 120 90" stroke="#F3E7F7" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <ellipse cx="60" cy="150" rx="11" ry="8" fill="#FBEFF7" stroke="#EADFF0" stroke-width="2"/>
+          <ellipse cx="140" cy="150" rx="11" ry="8" fill="#FBEFF7" stroke="#EADFF0" stroke-width="2"/>
+          <circle cx="65" cy="132" r="9" fill="#FFC9D6" opacity="0.7"/>
+          <circle cx="135" cy="132" r="9" fill="#FFC9D6" opacity="0.7"/>
+          <path d="M55 115 L38 110 M55 119 L36 119 M55 123 L38 128" stroke="#D9C3E0" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M145 115 L162 110 M145 119 L164 119 M145 123 L162 128" stroke="#D9C3E0" stroke-width="1.6" stroke-linecap="round"/>
           <circle cx="78" cy="118" r="8" fill="#5B3A6E"/>
           <circle cx="122" cy="118" r="8" fill="#5B3A6E"/>
+          <circle cx="80.5" cy="115" r="2.4" fill="white"/>
+          <circle cx="124.5" cy="115" r="2.4" fill="white"/>
+          <path d="M72 108 Q78 104 84 107" stroke="#5B3A6E" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M128 108 Q122 104 116 107" stroke="#5B3A6E" stroke-width="2" fill="none" stroke-linecap="round"/>
           <ellipse cx="100" cy="140" rx="10" ry="7" fill="#FF8FA3"/>
           <path d="M100 147 Q90 158 78 150" stroke="#5B3A6E" stroke-width="4" fill="none" stroke-linecap="round"/>
           <path d="M100 147 Q110 158 122 150" stroke="#5B3A6E" stroke-width="4" fill="none" stroke-linecap="round"/>
-          <circle cx="65" cy="132" r="9" fill="#FFC9D6" opacity="0.7"/>
-          <circle cx="135" cy="132" r="9" fill="#FFC9D6" opacity="0.7"/>
         </g>`,
       sort: `
-        <ellipse class="ear" cx="82" cy="42" rx="15" ry="38" fill="#FFC9D6" transform="rotate(-8 82 42)"/>
-        <ellipse class="ear" cx="82" cy="42" rx="7" ry="27" fill="#FF8FA3" transform="rotate(-8 82 42)"/>
-        <ellipse class="ear" cx="138" cy="42" rx="15" ry="38" fill="#FFC9D6" transform="rotate(8 138 42)"/>
-        <ellipse class="ear" cx="138" cy="42" rx="7" ry="27" fill="#FF8FA3" transform="rotate(8 138 42)"/>
+        <defs>
+          <radialGradient id="bunnySortBody" cx="42%" cy="30%" r="75%">
+            <stop offset="0%" stop-color="#FFFFFF"/>
+            <stop offset="100%" stop-color="#F1F7E9"/>
+          </radialGradient>
+          <linearGradient id="bunnySortEar" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#FFE1EA"/>
+            <stop offset="100%" stop-color="#FFB6C8"/>
+          </linearGradient>
+        </defs>
+        <ellipse cx="110" cy="196" rx="54" ry="9" fill="rgba(91,58,126,0.12)"/>
+        <g class="ear" transform="rotate(-8 82 88)">
+          <ellipse cx="82" cy="44" rx="15" ry="44" fill="url(#bunnySortEar)" stroke="#F3B9CB" stroke-width="1.5"/>
+          <ellipse cx="82" cy="50" rx="7" ry="33" fill="#FF8FA3"/>
+        </g>
+        <g class="ear" transform="rotate(8 138 88)">
+          <ellipse cx="138" cy="44" rx="15" ry="44" fill="url(#bunnySortEar)" stroke="#F3B9CB" stroke-width="1.5"/>
+          <ellipse cx="138" cy="50" rx="7" ry="33" fill="#FF8FA3"/>
+        </g>
         <g id="sort-body">
-          <ellipse cx="110" cy="135" rx="72" ry="62" fill="#FFFFFF" stroke="#DDEBD0" stroke-width="3"/>
-          <circle cx="85" cy="118" r="9" fill="#5B3A6E"/>
-          <circle cx="135" cy="118" r="9" fill="#5B3A6E"/>
+          <ellipse cx="110" cy="135" rx="72" ry="62" fill="url(#bunnySortBody)" stroke="#DDEBD0" stroke-width="3"/>
+          <ellipse cx="68" cy="152" rx="12" ry="9" fill="#FBFFF6" stroke="#DDEBD0" stroke-width="2"/>
+          <ellipse cx="152" cy="152" rx="12" ry="9" fill="#FBFFF6" stroke="#DDEBD0" stroke-width="2"/>
           <circle cx="70" cy="132" r="10" fill="#FFC9D6" opacity="0.7"/>
           <circle cx="150" cy="132" r="10" fill="#FFC9D6" opacity="0.7"/>
+          <circle cx="85" cy="118" r="9" fill="#5B3A6E"/>
+          <circle cx="135" cy="118" r="9" fill="#5B3A6E"/>
+          <circle cx="87.8" cy="114.5" r="2.6" fill="white"/>
+          <circle cx="137.8" cy="114.5" r="2.6" fill="white"/>
           <ellipse id="mouth-shape" cx="110" cy="155" rx="26" ry="19" fill="#B5406B"/>
           <ellipse cx="110" cy="160" rx="16" ry="9" fill="#7A2C4C"/>
         </g>`
     },
     shark: {
       idle: `
-        <ellipse class="ear ear-l" cx="60" cy="60" rx="18" ry="30" fill="#6FB6D9" transform="rotate(-25 60 60)"/>
-        <ellipse class="ear ear-r" cx="140" cy="60" rx="18" ry="30" fill="#6FB6D9" transform="rotate(25 140 60)"/>
+        <defs>
+          <radialGradient id="sharkIdleBody" cx="42%" cy="28%" r="80%">
+            <stop offset="0%" stop-color="#AFDCF0"/>
+            <stop offset="100%" stop-color="#7EB8D8"/>
+          </radialGradient>
+          <linearGradient id="sharkIdleFin" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#8AC6E4"/>
+            <stop offset="100%" stop-color="#5B95AF"/>
+          </linearGradient>
+        </defs>
+        <ellipse cx="100" cy="180" rx="48" ry="9" fill="rgba(27,58,75,0.15)"/>
+        <path d="M88 90 L100 38 L112 90 Q100 78 88 90Z" fill="url(#sharkIdleFin)" stroke="#4A7F98" stroke-width="2"/>
+        <g class="ear ear-l" transform="rotate(-20 65 95)">
+          <path d="M65 95 Q30 70 14 58 Q34 96 48 118 Q58 108 65 95Z" fill="url(#sharkIdleFin)" stroke="#4A7F98" stroke-width="2"/>
+        </g>
+        <g class="ear ear-r" transform="rotate(20 135 95)">
+          <path d="M135 95 Q170 70 186 58 Q166 96 152 118 Q142 108 135 95Z" fill="url(#sharkIdleFin)" stroke="#4A7F98" stroke-width="2"/>
+        </g>
         <g id="bunny-body">
-          <ellipse cx="100" cy="125" rx="65" ry="55" fill="#8FC5DE" stroke="#5B95AF" stroke-width="3"/>
+          <ellipse cx="100" cy="125" rx="65" ry="55" fill="url(#sharkIdleBody)" stroke="#5B95AF" stroke-width="3"/>
           <ellipse cx="100" cy="150" rx="42" ry="24" fill="#EAF8FC"/>
+          <path d="M58 100 Q52 104 50 110 M62 106 Q56 110 54 116" stroke="#4A7F98" stroke-width="2.4" stroke-linecap="round" opacity="0.55"/>
+          <path d="M142 100 Q148 104 150 110 M138 106 Q144 110 146 116" stroke="#4A7F98" stroke-width="2.4" stroke-linecap="round" opacity="0.55"/>
           <circle cx="78" cy="112" r="8" fill="#1B3A4B"/>
           <circle cx="122" cy="112" r="8" fill="#1B3A4B"/>
-          <circle cx="78" cy="110" r="2.5" fill="white"/>
-          <circle cx="122" cy="110" r="2.5" fill="white"/>
+          <circle cx="80.5" cy="109" r="2.6" fill="white"/>
+          <circle cx="124.5" cy="109" r="2.6" fill="white"/>
           <path d="M75 138 Q100 152 125 138 L120 145 Q100 156 80 145 Z" fill="#1B3A4B"/>
           <path d="M78 141 L83 148 L88 141 Z M96 143 L101 150 L106 143 Z M114 141 L119 148 L124 141 Z" fill="white"/>
         </g>`,
       sort: `
-        <ellipse class="ear" cx="66" cy="65" rx="20" ry="34" fill="#6FB6D9" transform="rotate(-25 66 65)"/>
-        <ellipse class="ear" cx="154" cy="65" rx="20" ry="34" fill="#6FB6D9" transform="rotate(25 154 65)"/>
+        <defs>
+          <radialGradient id="sharkSortBody" cx="42%" cy="26%" r="80%">
+            <stop offset="0%" stop-color="#AFDCF0"/>
+            <stop offset="100%" stop-color="#7EB8D8"/>
+          </radialGradient>
+          <linearGradient id="sharkSortFin" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#8AC6E4"/>
+            <stop offset="100%" stop-color="#5B95AF"/>
+          </linearGradient>
+        </defs>
+        <ellipse cx="110" cy="196" rx="54" ry="9" fill="rgba(27,58,75,0.15)"/>
+        <path d="M98 95 L110 45 L122 95 Q110 83 98 95Z" fill="url(#sharkSortFin)" stroke="#4A7F98" stroke-width="2"/>
+        <g class="ear" transform="rotate(-22 70 105)">
+          <path d="M70 105 Q34 80 18 68 Q40 108 52 128 Q62 118 70 105Z" fill="url(#sharkSortFin)" stroke="#4A7F98" stroke-width="2"/>
+        </g>
+        <g class="ear" transform="rotate(22 150 105)">
+          <path d="M150 105 Q186 80 202 68 Q180 108 168 128 Q158 118 150 105Z" fill="url(#sharkSortFin)" stroke="#4A7F98" stroke-width="2"/>
+        </g>
         <g id="sort-body">
-          <ellipse cx="110" cy="135" rx="72" ry="62" fill="#8FC5DE" stroke="#5B95AF" stroke-width="3"/>
+          <ellipse cx="110" cy="135" rx="72" ry="62" fill="url(#sharkSortBody)" stroke="#5B95AF" stroke-width="3"/>
           <ellipse cx="110" cy="162" rx="46" ry="26" fill="#EAF8FC"/>
+          <path d="M65 108 Q58 112 56 119 M69 115 Q62 119 60 126" stroke="#4A7F98" stroke-width="2.6" stroke-linecap="round" opacity="0.55"/>
+          <path d="M155 108 Q162 112 164 119 M151 115 Q158 119 160 126" stroke="#4A7F98" stroke-width="2.6" stroke-linecap="round" opacity="0.55"/>
           <circle cx="85" cy="118" r="9" fill="#1B3A4B"/>
           <circle cx="135" cy="118" r="9" fill="#1B3A4B"/>
-          <circle cx="85" cy="116" r="3" fill="white"/>
-          <circle cx="135" cy="116" r="3" fill="white"/>
+          <circle cx="87.8" cy="114.5" r="3" fill="white"/>
+          <circle cx="137.8" cy="114.5" r="3" fill="white"/>
           <ellipse id="mouth-shape" cx="110" cy="155" rx="26" ry="19" fill="#1B3A4B"/>
           <path d="M88 148 L96 158 L104 148 Z M108 150 L116 160 L124 150 Z M96 160 L104 168 L112 160 Z" fill="white"/>
         </g>`
@@ -344,6 +217,8 @@
   function renderSortChar(){
     var el = document.getElementById('sort-bunny');
     if (el) el.innerHTML = '<svg viewBox="0 0 220 220">' + CHARACTERS[selectedChar].sort + '</svg><div id="mouth-hit"></div>';
+    var emojiEl = document.getElementById('sort-food-emoji');
+    if (emojiEl) emojiEl.textContent = selectedChar === 'shark' ? '🐟' : '🥕';
   }
 
   document.querySelectorAll('.char-btn').forEach(function(btn){
@@ -558,6 +433,22 @@
       '</svg>';
   }
 
+  function fishSVG(){
+    return '<svg viewBox="0 0 60 96">' +
+      '<ellipse cx="30" cy="40" rx="22" ry="30" fill="#7EC8E3" stroke="#4F9BC0" stroke-width="3"/>' +
+      '<path d="M30 66 L16 94 L30 78 L44 94 Z" fill="#4F9BC0"/>' +
+      '<path d="M10 36 Q0 32 2 44 Q4 54 14 48 Z" fill="#9BD7EC" stroke="#4F9BC0" stroke-width="1.5"/>' +
+      '<path d="M50 36 Q60 32 58 44 Q56 54 46 48 Z" fill="#9BD7EC" stroke="#4F9BC0" stroke-width="1.5"/>' +
+      '<circle cx="23" cy="26" r="5" fill="#1F3B4D"/>' +
+      '<circle cx="21" cy="24" r="1.6" fill="white"/>' +
+      '<path d="M18 46 Q30 54 42 46" stroke="#1F3B4D" stroke-width="2.5" fill="none" stroke-linecap="round"/>' +
+      '</svg>';
+  }
+
+  function foodSVG(){
+    return selectedChar === 'shark' ? fishSVG() : carrotSVG();
+  }
+
   function makeCarrotAt(slotIndex){
     var w = window.innerWidth, h = window.innerHeight;
     var homeLeft = w*carrotSlots[slotIndex] - 32;
@@ -570,7 +461,7 @@
     el.dataset.slot = String(slotIndex);
     el.dataset.homeLeft = String(homeLeft);
     el.dataset.homeTop = String(homeTop);
-    el.innerHTML = carrotSVG();
+    el.innerHTML = foodSVG();
     sortEl.appendChild(el);
     requestAnimationFrame(function(){
       el.style.transition = 'transform .25s cubic-bezier(.34,1.6,.64,1)';
@@ -715,12 +606,13 @@
     }
   }, {passive:false});
 
-  var sortInitialized = false;
+  var sortInitializedFor = null;
   document.querySelector('[data-target="game-sort"]').addEventListener('click', initSortGame);
   document.querySelector('[data-target="game-sort"]').addEventListener('touchend', initSortGame);
   function initSortGame(){
-    if (sortInitialized) return;
-    sortInitialized = true;
+    if (sortInitializedFor === selectedChar) return;
+    sortInitializedFor = selectedChar;
+    document.querySelectorAll('.carrot').forEach(function(el){ el.remove(); });
     for (var i=0; i<carrotSlots.length; i++){ makeCarrotAt(i); }
   }
 

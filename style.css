@@ -1,0 +1,206 @@
+:root{
+  --sky:#BFE9FF;
+  --sun:#FFD966;
+  --coral:#FF8FA3;
+  --grass:#8CD790;
+  --plum:#5B3A6E;
+  --cream:#FFF8EC;
+}
+html,body{
+  margin:0; padding:0; width:100%; height:100%;
+  overscroll-behavior:none;
+  touch-action:none;
+  -webkit-user-select:none; user-select:none;
+  -webkit-touch-callout:none;
+  background:var(--sky);
+  font-family:"Baloo 2","Comic Sans MS","Trebuchet MS",ui-rounded,sans-serif;
+  overflow:hidden;
+}
+#app{
+  position:fixed; inset:0;
+  width:100%; height:100%;
+}
+.screen{
+  position:absolute; inset:0;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+.screen.active{ display:flex; }
+
+/* ---------- HOME ---------- */
+#home{
+  background:linear-gradient(180deg,var(--sky) 0%,#E4F6FF 100%);
+  gap:18px;
+}
+#home h1{
+  color:var(--plum);
+  font-size:clamp(28px,7vw,48px);
+  margin:0 0 6px 0;
+  text-shadow:0 3px 0 rgba(255,255,255,0.6);
+}
+#home .sub{
+  color:var(--plum);
+  opacity:0.7;
+  font-size:clamp(14px,3vw,18px);
+  margin-bottom:10px;
+}
+.card-row{
+  display:flex;
+  gap:22px;
+  flex-wrap:wrap;
+  justify-content:center;
+  padding:0 16px;
+}
+.game-card{
+  width:min(30vw,180px);
+  height:min(30vw,180px);
+  min-width:130px; min-height:130px;
+  border-radius:32px;
+  border:none;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  gap:8px;
+  box-shadow:0 8px 0 rgba(0,0,0,0.12), 0 10px 20px rgba(0,0,0,0.08);
+  transform:translateY(0);
+  transition:transform .12s ease;
+  cursor:pointer;
+}
+.game-card:active{ transform:translateY(6px); box-shadow:0 2px 0 rgba(0,0,0,0.12); }
+.game-card .emoji{ font-size:clamp(36px,8vw,54px); }
+.game-card .label{ color:white; font-weight:bold; font-size:clamp(13px,2.6vw,17px); text-align:center; padding:0 8px; }
+.game-card.ready{ background:var(--coral); }
+.game-card.soon{ background:#B9AFC7; opacity:0.85; }
+.game-card .badge{
+  font-size:11px; background:rgba(255,255,255,0.85); color:var(--plum);
+  padding:3px 10px; border-radius:20px; font-weight:bold;
+}
+
+/* ---------- CHARACTER PICKER ---------- */
+.char-picker{
+  display:flex; gap:14px; margin-bottom:6px;
+}
+.char-btn{
+  width:56px; height:56px; border-radius:50%;
+  border:3px solid transparent;
+  background:white;
+  font-size:28px;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 0 rgba(0,0,0,0.1);
+}
+.char-btn.selected{
+  border-color:var(--sun);
+  box-shadow:0 4px 0 rgba(0,0,0,0.1), 0 0 0 4px rgba(255,217,102,0.4);
+}
+
+/* ---------- BACK BUTTON ---------- */
+.back-btn{
+  position:absolute; top:16px; left:16px;
+  width:52px; height:52px; border-radius:50%;
+  background:rgba(255,255,255,0.85);
+  border:none;
+  font-size:24px;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 0 rgba(0,0,0,0.1);
+  z-index:50;
+}
+
+/* ---------- SENSORY GAME ---------- */
+#game-sensory{
+  background:var(--cream);
+  transition:background-color .4s ease;
+  position:absolute; inset:0;
+}
+#bunny-wrap{
+  position:absolute; left:50%; top:50%;
+  transform:translate(-50%,-50%);
+  width:38vmin; height:38vmin;
+  pointer-events:none;
+}
+#bunny-wrap svg{ width:100%; height:100%; overflow:visible; }
+.ear{ transform-origin:50% 100%; }
+#bunny-wrap.happy .ear-l{ animation:wiggleL .5s ease; }
+#bunny-wrap.happy .ear-r{ animation:wiggleR .5s ease; }
+#bunny-wrap.happy #bunny-body{ animation:bounce .5s ease; }
+@keyframes wiggleL{ 0%{transform:rotate(0)} 30%{transform:rotate(-18deg)} 60%{transform:rotate(10deg)} 100%{transform:rotate(0)} }
+@keyframes wiggleR{ 0%{transform:rotate(0)} 30%{transform:rotate(18deg)} 60%{transform:rotate(-10deg)} 100%{transform:rotate(0)} }
+@keyframes bounce{ 0%{transform:translateY(0)} 40%{transform:translateY(-4%)} 100%{transform:translateY(0)} }
+
+.particle{
+  position:absolute;
+  border-radius:50%;
+  pointer-events:none;
+  will-change:transform,opacity;
+}
+
+#sound-gate{
+  position:absolute; inset:0;
+  background:rgba(91,58,126,0.92);
+  display:flex; align-items:center; justify-content:center;
+  flex-direction:column; gap:16px;
+  color:white; text-align:center; z-index:100;
+}
+#sound-gate .tap-btn{
+  background:var(--sun); color:var(--plum); border:none;
+  font-weight:bold; font-size:20px;
+  padding:16px 32px; border-radius:40px;
+  box-shadow:0 6px 0 rgba(0,0,0,0.15);
+}
+
+/* ---------- CARROT FEEDING GAME ---------- */
+#game-sort{
+  background:linear-gradient(180deg,#DFF6E3 0%,#C9EFD1 100%);
+  position:absolute; inset:0;
+  overflow:hidden;
+}
+.sort-counter{
+  position:absolute; top:18px; right:18px;
+  background:white; color:var(--plum); font-weight:bold; font-size:20px;
+  padding:8px 18px; border-radius:24px;
+  box-shadow:0 4px 0 rgba(0,0,0,0.1);
+  z-index:20;
+}
+#sort-bunny{
+  position:absolute; left:50%; top:20%;
+  transform:translate(-50%,-50%);
+  width:40vmin; height:40vmin;
+  pointer-events:none;
+  z-index:5;
+}
+#sort-bunny svg{ width:100%; height:100%; overflow:visible; }
+#sort-bunny.eating #sort-body{ animation:bounce .4s ease; }
+#mouth-shape{ transform-origin:110px 155px; }
+#sort-bunny.eating #mouth-shape{ animation:chew .4s ease; }
+@keyframes chew{ 0%{transform:scaleY(1)} 40%{transform:scaleY(0.25)} 100%{transform:scaleY(1)} }
+#mouth-hit{
+  position:absolute; left:50%; top:70%;
+  width:28%; height:20%;
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+}
+.carrot{
+  position:absolute;
+  width:64px; height:96px;
+  touch-action:none;
+  z-index:10;
+  transition:none;
+}
+.carrot svg{ width:100%; height:100%; overflow:visible; filter:drop-shadow(0 4px 4px rgba(0,0,0,0.15)); }
+.carrot.dragging{ z-index:30; }
+.cheer-text{
+  position:absolute; left:50%; top:38%;
+  transform:translate(-50%,-50%) scale(0.6);
+  color:var(--coral); font-weight:bold; font-size:clamp(24px,6vw,40px);
+  text-shadow:0 3px 0 white, 0 3px 8px rgba(0,0,0,0.15);
+  opacity:0;
+  pointer-events:none;
+  z-index:40;
+}
+.cheer-text.show{ animation:cheerPop .9s ease forwards; }
+@keyframes cheerPop{
+  0%{ opacity:0; transform:translate(-50%,-50%) scale(0.5); }
+  30%{ opacity:1; transform:translate(-50%,-50%) scale(1.1); }
+  70%{ opacity:1; transform:translate(-50%,-50%) scale(1); }
+  100%{ opacity:0; transform:translate(-50%,-60%) scale(1); }
+}

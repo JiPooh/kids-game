@@ -137,6 +137,63 @@
     padding:16px 32px; border-radius:40px;
     box-shadow:0 6px 0 rgba(0,0,0,0.15);
   }
+
+  /* ---------- CARROT FEEDING GAME ---------- */
+  #game-sort{
+    background:linear-gradient(180deg,#DFF6E3 0%,#C9EFD1 100%);
+    position:absolute; inset:0;
+    overflow:hidden;
+  }
+  .sort-counter{
+    position:absolute; top:18px; right:18px;
+    background:white; color:var(--plum); font-weight:bold; font-size:20px;
+    padding:8px 18px; border-radius:24px;
+    box-shadow:0 4px 0 rgba(0,0,0,0.1);
+    z-index:20;
+  }
+  #sort-bunny{
+    position:absolute; left:50%; top:20%;
+    transform:translate(-50%,-50%);
+    width:40vmin; height:40vmin;
+    pointer-events:none;
+    z-index:5;
+  }
+  #sort-bunny svg{ width:100%; height:100%; overflow:visible; }
+  #sort-bunny.eating #sort-body{ animation:bounce .4s ease; }
+  #mouth-shape{ transform-origin:110px 155px; }
+  #sort-bunny.eating #mouth-shape{ animation:chew .4s ease; }
+  @keyframes chew{ 0%{transform:scaleY(1)} 40%{transform:scaleY(0.25)} 100%{transform:scaleY(1)} }
+  #mouth-hit{
+    position:absolute; left:50%; top:70%;
+    width:28%; height:20%;
+    transform:translate(-50%,-50%);
+    pointer-events:none;
+  }
+  .carrot{
+    position:absolute;
+    width:64px; height:96px;
+    touch-action:none;
+    z-index:10;
+    transition:none;
+  }
+  .carrot svg{ width:100%; height:100%; overflow:visible; filter:drop-shadow(0 4px 4px rgba(0,0,0,0.15)); }
+  .carrot.dragging{ z-index:30; }
+  .cheer-text{
+    position:absolute; left:50%; top:38%;
+    transform:translate(-50%,-50%) scale(0.6);
+    color:var(--coral); font-weight:bold; font-size:clamp(24px,6vw,40px);
+    text-shadow:0 3px 0 white, 0 3px 8px rgba(0,0,0,0.15);
+    opacity:0;
+    pointer-events:none;
+    z-index:40;
+  }
+  .cheer-text.show{ animation:cheerPop .9s ease forwards; }
+  @keyframes cheerPop{
+    0%{ opacity:0; transform:translate(-50%,-50%) scale(0.5); }
+    30%{ opacity:1; transform:translate(-50%,-50%) scale(1.1); }
+    70%{ opacity:1; transform:translate(-50%,-50%) scale(1); }
+    100%{ opacity:0; transform:translate(-50%,-60%) scale(1); }
+  }
 </style>
 </head>
 <body>
@@ -156,10 +213,9 @@
         <div class="label">숨은그림찾기</div>
         <div class="badge">곧 만나요</div>
       </button>
-      <button class="game-card soon" data-target="game-sort">
+      <button class="game-card ready" data-target="game-sort">
         <div class="emoji">🥕🐇</div>
         <div class="label">당근 먹이기</div>
-        <div class="badge">곧 만나요</div>
       </button>
     </div>
   </div>
@@ -199,11 +255,29 @@
     <div style="color:var(--plum); font-weight:bold; font-size:22px; margin-top:12px;">숨은그림찾기는 준비 중이에요!</div>
   </div>
 
-  <!-- GAME 3: PLACEHOLDER -->
+  <!-- GAME 3: CARROT FEEDING -->
   <div class="screen" id="game-sort">
     <button class="back-btn" data-home>←</button>
-    <div style="font-size:60px;">🥕🐇🔧</div>
-    <div style="color:var(--plum); font-weight:bold; font-size:22px; margin-top:12px;">당근 먹이기는 준비 중이에요!</div>
+    <div class="sort-counter"><span id="sort-count-num">0</span> 🥕</div>
+    <div class="cheer-text" id="cheer-text">잘했어요! 🎉</div>
+    <div id="sort-bunny">
+      <svg viewBox="0 0 220 220">
+        <ellipse class="ear" cx="82" cy="42" rx="15" ry="38" fill="#FFC9D6" transform="rotate(-8 82 42)"/>
+        <ellipse class="ear" cx="82" cy="42" rx="7" ry="27" fill="#FF8FA3" transform="rotate(-8 82 42)"/>
+        <ellipse class="ear" cx="138" cy="42" rx="15" ry="38" fill="#FFC9D6" transform="rotate(8 138 42)"/>
+        <ellipse class="ear" cx="138" cy="42" rx="7" ry="27" fill="#FF8FA3" transform="rotate(8 138 42)"/>
+        <g id="sort-body">
+          <ellipse cx="110" cy="135" rx="72" ry="62" fill="#FFFFFF" stroke="#DDEBD0" stroke-width="3"/>
+          <circle cx="85" cy="118" r="9" fill="#5B3A6E"/>
+          <circle cx="135" cy="118" r="9" fill="#5B3A6E"/>
+          <circle cx="70" cy="132" r="10" fill="#FFC9D6" opacity="0.7"/>
+          <circle cx="150" cy="132" r="10" fill="#FFC9D6" opacity="0.7"/>
+          <ellipse id="mouth-shape" cx="110" cy="155" rx="26" ry="19" fill="#B5406B"/>
+          <ellipse cx="110" cy="160" rx="16" ry="9" fill="#7A2C4C"/>
+        </g>
+      </svg>
+      <div id="mouth-hit"></div>
+    </div>
   </div>
 
 </div>
@@ -294,7 +368,7 @@
   var palette = ['#FF8FA3','#FFD966','#8CD790','#8FD3FF','#C9A6E0'];
   var colorIdx = 0;
 
-  function spawnParticle(x, y){
+  function spawnParticle(container, x, y){
     var p = document.createElement('div');
     p.className = 'particle';
     var size = 26 + Math.random()*30;
@@ -306,7 +380,7 @@
     p.style.top = (y - size/2)+'px';
     p.style.background = color;
     p.style.opacity = '0.85';
-    gameEl.appendChild(p);
+    container.appendChild(p);
 
     var dx = (Math.random()-0.5) * 120;
     var dy = -(60 + Math.random()*100);
@@ -358,7 +432,7 @@
   function handleTouches(touchList){
     for (var i=0; i<touchList.length; i++){
       var t = touchList[i];
-      spawnParticle(t.clientX, t.clientY);
+      spawnParticle(gameEl, t.clientX, t.clientY);
       if (isTouchOnBunny(t.clientX, t.clientY)){
         reactBunny();
       } else {
@@ -378,6 +452,202 @@
   gameEl.addEventListener('mousedown', function(e){
     handleTouches([{clientX:e.clientX, clientY:e.clientY}]);
   });
+
+  // ---------- Carrot feeding game ----------
+  function playChomp(){
+    playTone(220, 0.12, 0, 0.28);
+    playTone(150, 0.16, 0.06, 0.22);
+  }
+  function playCheer(){
+    [0,0.1,0.2,0.32].forEach(function(delay, i){
+      playTone(520 + i*130, 0.2, delay, 0.22);
+    });
+  }
+
+  var sortEl = document.getElementById('game-sort');
+  var sortBunny = document.getElementById('sort-bunny');
+  var mouthHit = document.getElementById('mouth-hit');
+  var countNumEl = document.getElementById('sort-count-num');
+  var cheerTextEl = document.getElementById('cheer-text');
+  var fedCount = 0;
+  var carrotSlots = [0.28, 0.5, 0.72]; // x fraction of screen width
+  var slotY = 0.82; // y fraction of screen height
+  var activeDrags = {}; // touch identifier -> {el, offsetX, offsetY}
+
+  function carrotSVG(){
+    return '<svg viewBox="0 0 60 96">' +
+      '<path d="M30 8 L46 90 Q30 100 14 90 Z" fill="#FF9F45"/>' +
+      '<path d="M30 8 L40 88 Q30 94 20 88 Z" fill="#FFB565"/>' +
+      '<path d="M30 4 L20 -14" stroke="#4E9F52" stroke-width="6" stroke-linecap="round"/>' +
+      '<path d="M30 4 L30 -18" stroke="#5FBE63" stroke-width="6" stroke-linecap="round"/>' +
+      '<path d="M30 4 L40 -14" stroke="#4E9F52" stroke-width="6" stroke-linecap="round"/>' +
+      '</svg>';
+  }
+
+  function makeCarrotAt(slotIndex){
+    var w = window.innerWidth, h = window.innerHeight;
+    var homeLeft = w*carrotSlots[slotIndex] - 32;
+    var homeTop = h*slotY - 48;
+    var el = document.createElement('div');
+    el.className = 'carrot';
+    el.style.left = homeLeft+'px';
+    el.style.top = homeTop+'px';
+    el.style.transform = 'scale(0)';
+    el.dataset.slot = String(slotIndex);
+    el.dataset.homeLeft = String(homeLeft);
+    el.dataset.homeTop = String(homeTop);
+    el.innerHTML = carrotSVG();
+    sortEl.appendChild(el);
+    requestAnimationFrame(function(){
+      el.style.transition = 'transform .25s cubic-bezier(.34,1.6,.64,1)';
+      el.style.transform = 'scale(1)';
+      setTimeout(function(){ el.style.transition = ''; }, 260);
+    });
+    bindCarrotDrag(el);
+    return el;
+  }
+
+  function bindCarrotDrag(el){
+    el.addEventListener('touchstart', function(e){
+      e.preventDefault();
+      ensureCtx();
+      var t = e.changedTouches[0];
+      var rect = el.getBoundingClientRect();
+      activeDrags[t.identifier] = {
+        el: el,
+        offsetX: t.clientX - rect.left,
+        offsetY: t.clientY - rect.top
+      };
+      el.classList.add('dragging');
+    }, {passive:false});
+    el.addEventListener('mousedown', function(e){
+      e.preventDefault();
+      ensureCtx();
+      var rect = el.getBoundingClientRect();
+      activeDrags['mouse'] = {
+        el: el,
+        offsetX: e.clientX - rect.left,
+        offsetY: e.clientY - rect.top
+      };
+      el.classList.add('dragging');
+    });
+  }
+
+  sortEl.addEventListener('touchmove', function(e){
+    e.preventDefault();
+    for (var i=0; i<e.changedTouches.length; i++){
+      var t = e.changedTouches[i];
+      var drag = activeDrags[t.identifier];
+      if (!drag) continue;
+      drag.el.style.left = (t.clientX - drag.offsetX)+'px';
+      drag.el.style.top = (t.clientY - drag.offsetY)+'px';
+    }
+  }, {passive:false});
+
+  document.addEventListener('mousemove', function(e){
+    var drag = activeDrags['mouse'];
+    if (!drag) return;
+    drag.el.style.left = (e.clientX - drag.offsetX)+'px';
+    drag.el.style.top = (e.clientY - drag.offsetY)+'px';
+  });
+  document.addEventListener('mouseup', function(){
+    var drag = activeDrags['mouse'];
+    if (!drag) return;
+    finishDrag(drag.el);
+    delete activeDrags['mouse'];
+  });
+
+  function returnHome(el){
+    el.style.transition = 'left .25s ease, top .25s ease';
+    el.style.left = el.dataset.homeLeft+'px';
+    el.style.top = el.dataset.homeTop+'px';
+    setTimeout(function(){ el.style.transition = ''; }, 260);
+  }
+
+  function reactSortBunny(){
+    sortBunny.classList.remove('eating');
+    void sortBunny.offsetWidth;
+    sortBunny.classList.add('eating');
+    setTimeout(function(){ sortBunny.classList.remove('eating'); }, 420);
+  }
+
+  function showCheer(){
+    cheerTextEl.classList.remove('show');
+    void cheerTextEl.offsetWidth;
+    cheerTextEl.classList.add('show');
+  }
+
+  function spawnConfetti(){
+    var w = window.innerWidth;
+    for (var i=0; i<14; i++){
+      spawnParticle(sortEl, w/2 + (Math.random()-0.5)*160, window.innerHeight*0.35);
+    }
+  }
+
+  function feedCarrot(el){
+    var slotIndex = parseInt(el.dataset.slot, 10);
+    el.style.transition = 'transform .25s ease, opacity .25s ease';
+    el.style.transform = 'scale(0.2)';
+    el.style.opacity = '0';
+    playChomp();
+    reactSortBunny();
+    fedCount++;
+    countNumEl.textContent = String(fedCount);
+    if (fedCount % 5 === 0){
+      playCheer();
+      showCheer();
+      spawnConfetti();
+    }
+    setTimeout(function(){
+      el.remove();
+      makeCarrotAt(slotIndex);
+    }, 260);
+  }
+
+  function finishDrag(el){
+    el.classList.remove('dragging');
+    var carrotRect = el.getBoundingClientRect();
+    var cx = carrotRect.left + carrotRect.width/2;
+    var cy = carrotRect.top + carrotRect.height*0.3;
+    var mouthRect = mouthHit.getBoundingClientRect();
+    var mx = mouthRect.left + mouthRect.width/2;
+    var my = mouthRect.top + mouthRect.height/2;
+    var dist = Math.hypot(cx-mx, cy-my);
+    var threshold = Math.max(mouthRect.width, mouthRect.height) * 0.85;
+    if (dist < threshold){
+      feedCarrot(el);
+    } else {
+      returnHome(el);
+    }
+  }
+
+  sortEl.addEventListener('touchend', function(e){
+    for (var i=0; i<e.changedTouches.length; i++){
+      var t = e.changedTouches[i];
+      var drag = activeDrags[t.identifier];
+      if (!drag) continue;
+      finishDrag(drag.el);
+      delete activeDrags[t.identifier];
+    }
+  }, {passive:false});
+  sortEl.addEventListener('touchcancel', function(e){
+    for (var i=0; i<e.changedTouches.length; i++){
+      var t = e.changedTouches[i];
+      var drag = activeDrags[t.identifier];
+      if (!drag) continue;
+      returnHome(drag.el);
+      delete activeDrags[t.identifier];
+    }
+  }, {passive:false});
+
+  var sortInitialized = false;
+  document.querySelector('[data-target="game-sort"]').addEventListener('click', initSortGame);
+  document.querySelector('[data-target="game-sort"]').addEventListener('touchend', initSortGame);
+  function initSortGame(){
+    if (sortInitialized) return;
+    sortInitialized = true;
+    for (var i=0; i<carrotSlots.length; i++){ makeCarrotAt(i); }
+  }
 
 })();
 </script>

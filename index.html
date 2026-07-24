@@ -16,6 +16,9 @@
     <div class="char-picker" id="char-picker">
       <button class="char-btn selected" data-char="bunny">🐰</button>
       <button class="char-btn" data-char="shark">🦈</button>
+      <button class="char-btn" data-char="bear">🐻</button>
+      <button class="char-btn" data-char="dog">🐶</button>
+      <button class="char-btn" data-char="dinosaur">🦕</button>
     </div>
     <div class="card-row">
       <button class="game-card ready" data-target="game-sensory">
@@ -74,19 +77,30 @@
   // ---------- Character system ----------
   var CHARACTER_IMAGES = {
     bunny: 'assets/bunny.svg',
-    shark: 'assets/shark.svg'
+    shark: 'assets/shark.svg',
+    bear: 'assets/bear.svg',
+    dog: 'assets/dog.svg',
+    dinosaur: 'assets/dinosaur.svg'
   };
   // mouth-hit target position differs per character since the artwork isn't hand-fit to this app
   var MOUTH_HIT_POS = {
     bunny: { left: '50%', top: '76%' },
-    shark: { left: '32%', top: '58%' }
+    shark: { left: '32%', top: '58%' },
+    bear: { left: '50%', top: '78%' },
+    dog: { left: '50%', top: '72%' },
+    dinosaur: { left: '30%', top: '16%' }
   };
   var selectedChar = 'bunny';
 
   var HOME_CARD_LABELS = {
     bunny: { sensoryEmoji: '🐰✨', sensoryLabel: '토끼랑 콕콕', sortEmoji: '🥕🐇', sortLabel: '당근 먹이기' },
-    shark: { sensoryEmoji: '🦈✨', sensoryLabel: '상어랑 콕콕', sortEmoji: '🐟🦈', sortLabel: '물고기 먹이기' }
+    shark: { sensoryEmoji: '🦈✨', sensoryLabel: '상어랑 콕콕', sortEmoji: '🐟🦈', sortLabel: '물고기 먹이기' },
+    bear: { sensoryEmoji: '🐻✨', sensoryLabel: '곰이랑 콕콕', sortEmoji: '🍯🐻', sortLabel: '꿀 먹이기' },
+    dog: { sensoryEmoji: '🐶✨', sensoryLabel: '강아지랑 콕콕', sortEmoji: '🦴🐶', sortLabel: '간식 먹이기' },
+    dinosaur: { sensoryEmoji: '🦕✨', sensoryLabel: '공룡이랑 콕콕', sortEmoji: '🌿🦕', sortLabel: '나뭇잎 먹이기' }
   };
+
+  var FOOD_ICON = { bunny: '🥕', shark: '🐟', bear: '🍯', dog: '🦴', dinosaur: '🌿' };
 
   function updateHomeCards(){
     var labels = HOME_CARD_LABELS[selectedChar] || HOME_CARD_LABELS.bunny;
@@ -110,7 +124,7 @@
       mouthHitEl.style.top = pos.top;
     }
     var emojiEl = document.getElementById('sort-food-emoji');
-    if (emojiEl) emojiEl.textContent = selectedChar === 'shark' ? '🐟' : '🥕';
+    if (emojiEl) emojiEl.textContent = FOOD_ICON[selectedChar] || FOOD_ICON.bunny;
   }
 
   document.querySelectorAll('.char-btn').forEach(function(btn){
@@ -318,7 +332,10 @@
 
   var FOOD_SETS = {
     bunny: ['assets/carrot.svg', 'assets/apple.svg', 'assets/strawberry.svg'],
-    shark: ['assets/fish.svg', 'assets/shrimp.svg', 'assets/squid.svg']
+    shark: ['assets/fish.svg', 'assets/shrimp.svg', 'assets/squid.svg'],
+    bear: ['assets/honey.svg', 'assets/blueberry.svg', 'assets/fish.svg'],
+    dog: ['assets/bone.svg', 'assets/meat.svg', 'assets/cookie.svg'],
+    dinosaur: ['assets/herb.svg', 'assets/leaf.svg', 'assets/broccoli.svg']
   };
 
   function foodImageFor(slotIndex){

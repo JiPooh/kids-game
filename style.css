@@ -80,6 +80,8 @@ html,body{
 /* ---------- CHARACTER PICKER ---------- */
 .char-picker{
   display:flex; gap:14px; margin-bottom:6px;
+  flex-wrap:wrap; justify-content:center;
+  max-width:320px;
 }
 .char-btn{
   width:56px; height:56px; border-radius:50%;

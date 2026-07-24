@@ -22,10 +22,9 @@
         <div class="emoji">🐰✨</div>
         <div class="label">토끼랑 콕콕</div>
       </button>
-      <button class="game-card soon" data-target="game-hidden">
+      <button class="game-card ready" data-target="game-hidden">
         <div class="emoji">🖼️</div>
         <div class="label">숨은그림찾기</div>
-        <div class="badge">곧 만나요</div>
       </button>
       <button class="game-card ready" data-target="game-sort">
         <div class="emoji">🥕🐇</div>
@@ -45,11 +44,17 @@
     </div>
   </div>
 
-  <!-- GAME 2: PLACEHOLDER -->
+  <!-- GAME 2: HIDDEN PICTURES -->
   <div class="screen" id="game-hidden">
     <button class="back-btn" data-home>←</button>
-    <div style="font-size:60px;">🖼️🔧</div>
-    <div style="color:var(--plum); font-weight:bold; font-size:22px; margin-top:12px;">숨은그림찾기는 준비 중이에요!</div>
+    <div class="cloud" style="width:70px; height:34px; left:12%; top:10%;"></div>
+    <div class="cloud" style="width:50px; height:26px; left:68%; top:16%;"></div>
+    <div class="bush" style="width:130px; height:64px; left:-16px; bottom:-14px;"></div>
+    <div class="bush" style="width:160px; height:76px; right:-24px; bottom:-20px;"></div>
+    <div class="bush" style="width:96px; height:52px; left:36%; bottom:-22px;"></div>
+    <div class="hidden-counter"><span id="hidden-found-num">0</span> / <span id="hidden-total-num">0</span> 🔍</div>
+    <div class="cheer-text" id="hidden-cheer-text">다 찾았어요! 🎉</div>
+    <div id="hidden-scene"></div>
   </div>
 
   <!-- GAME 3: CARROT FEEDING -->
@@ -614,6 +619,100 @@
     sortInitializedFor = selectedChar;
     document.querySelectorAll('.carrot').forEach(function(el){ el.remove(); });
     for (var i=0; i<carrotSlots.length; i++){ makeCarrotAt(i); }
+  }
+
+  // ---------- Hidden picture game ----------
+  function playChime(){
+    playTone(880, 0.16, 0, 0.22);
+    playTone(1180, 0.18, 0.07, 0.18);
+  }
+  function playFanfare(){
+    [0,0.12,0.24,0.4].forEach(function(delay, i){
+      playTone(560 + i*140, 0.22, delay, 0.24);
+    });
+  }
+
+  var hiddenEl = document.getElementById('game-hidden');
+  var hiddenSceneEl = document.getElementById('hidden-scene');
+  var hiddenFoundNumEl = document.getElementById('hidden-found-num');
+  var hiddenTotalNumEl = document.getElementById('hidden-total-num');
+  var hiddenCheerEl = document.getElementById('hidden-cheer-text');
+  var hiddenPositions = [
+    {x:0.22, y:0.32},
+    {x:0.76, y:0.24},
+    {x:0.50, y:0.52},
+    {x:0.18, y:0.74},
+    {x:0.80, y:0.70}
+  ];
+  var hiddenItemSets = [
+    ['⭐','🌸','🍎','🦋','💛'],
+    ['🍄','🎈','🍒','🐝','🌼'],
+    ['🌟','🍭','🐞','🌈','🍓']
+  ];
+  var hiddenRound = 0;
+  var hiddenFound = 0;
+  var hiddenTotal = 0;
+
+  function buildHiddenRound(){
+    hiddenSceneEl.innerHTML = '';
+    hiddenFound = 0;
+    var items = hiddenItemSets[hiddenRound % hiddenItemSets.length];
+    hiddenTotal = items.length;
+    hiddenFoundNumEl.textContent = String(hiddenFound);
+    hiddenTotalNumEl.textContent = String(hiddenTotal);
+
+    var w = window.innerWidth, h = window.innerHeight;
+    items.forEach(function(emoji, i){
+      var pos = hiddenPositions[i % hiddenPositions.length];
+      var spot = document.createElement('div');
+      spot.className = 'hidden-spot';
+      spot.textContent = emoji;
+      spot.style.left = (w*pos.x) + 'px';
+      spot.style.top = (h*pos.y) + 'px';
+      spot.dataset.found = '0';
+      bindHiddenSpot(spot);
+      hiddenSceneEl.appendChild(spot);
+    });
+  }
+
+  function bindHiddenSpot(spot){
+    function reveal(){
+      if (spot.dataset.found === '1') return;
+      spot.dataset.found = '1';
+      spot.classList.add('found');
+      ensureCtx();
+      playChime();
+      var rect = spot.getBoundingClientRect();
+      var cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+      for (var i=0; i<8; i++){ spawnParticle(hiddenEl, cx, cy); }
+      hiddenFound++;
+      hiddenFoundNumEl.textContent = String(hiddenFound);
+      if (hiddenFound >= hiddenTotal){
+        setTimeout(function(){
+          playFanfare();
+          hiddenCheerEl.classList.remove('show');
+          void hiddenCheerEl.offsetWidth;
+          hiddenCheerEl.classList.add('show');
+          var w = window.innerWidth;
+          for (var i=0; i<14; i++){
+            spawnParticle(hiddenEl, w/2 + (Math.random()-0.5)*160, window.innerHeight*0.35);
+          }
+          hiddenRound++;
+          setTimeout(buildHiddenRound, 1400);
+        }, 300);
+      }
+    }
+    spot.addEventListener('touchend', function(e){ e.preventDefault(); reveal(); }, {passive:false});
+    spot.addEventListener('click', reveal);
+  }
+
+  var hiddenInitialized = false;
+  document.querySelector('[data-target="game-hidden"]').addEventListener('click', initHiddenGame);
+  document.querySelector('[data-target="game-hidden"]').addEventListener('touchend', initHiddenGame);
+  function initHiddenGame(){
+    if (hiddenInitialized) return;
+    hiddenInitialized = true;
+    buildHiddenRound();
   }
 
 })();

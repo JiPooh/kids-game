@@ -204,3 +204,51 @@ html,body{
   70%{ opacity:1; transform:translate(-50%,-50%) scale(1); }
   100%{ opacity:0; transform:translate(-50%,-60%) scale(1); }
 }
+
+/* ---------- HIDDEN PICTURE GAME ---------- */
+#game-hidden{
+  background:linear-gradient(180deg,#BFE9FF 0%,#DFF6E3 75%);
+  position:absolute; inset:0;
+  overflow:hidden;
+}
+#game-hidden .cloud{
+  position:absolute;
+  background:white;
+  opacity:0.85;
+  border-radius:50%;
+}
+#game-hidden .bush{
+  position:absolute;
+  background:var(--grass);
+  border-radius:50% 50% 45% 45%;
+  opacity:0.9;
+}
+.hidden-counter{
+  position:absolute; top:18px; right:18px;
+  background:white; color:var(--plum); font-weight:bold; font-size:20px;
+  padding:8px 18px; border-radius:24px;
+  box-shadow:0 4px 0 rgba(0,0,0,0.1);
+  z-index:20;
+}
+#hidden-scene{
+  position:absolute; inset:0;
+}
+.hidden-spot{
+  position:absolute;
+  width:60px; height:60px;
+  transform:translate(-50%,-50%);
+  display:flex; align-items:center; justify-content:center;
+  font-size:38px;
+  filter:grayscale(1) opacity(0.32);
+  transition:filter .35s ease;
+  touch-action:none;
+}
+.hidden-spot.found{
+  filter:grayscale(0) opacity(1);
+  animation:hiddenPop .5s ease forwards;
+}
+@keyframes hiddenPop{
+  0%{ transform:translate(-50%,-50%) scale(1); }
+  45%{ transform:translate(-50%,-50%) scale(1.4); }
+  100%{ transform:translate(-50%,-50%) scale(1.08); }
+}

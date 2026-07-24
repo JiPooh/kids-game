@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>토끼랑 놀이터</title>
+<style>
+  :root{
+    --sky:#BFE9FF;
+    --sun:#FFD966;
+    --coral:#FF8FA3;
+    --grass:#8CD790;
+    --plum:#5B3A6E;
+    --cream:#FFF8EC;
+  }
+  html,body{
+    margin:0; padding:0; width:100%; height:100%;
+    overscroll-behavior:none;
+    touch-action:none;
+    -webkit-user-select:none; user-select:none;
+    -webkit-touch-callout:none;
+    background:var(--sky);
+    font-family:"Baloo 2","Comic Sans MS","Trebuchet MS",ui-rounded,sans-serif;
+    overflow:hidden;
+  }
+  #app{
+    position:fixed; inset:0;
+    width:100%; height:100%;
+  }
+  .screen{
+    position:absolute; inset:0;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+  }
+  .screen.active{ display:flex; }
+
+  /* ---------- HOME ---------- */
+  #home{
+    background:linear-gradient(180deg,var(--sky) 0%,#E4F6FF 100%);
+    gap:18px;
+  }
+  #home h1{
+    color:var(--plum);
+    font-size:clamp(28px,7vw,48px);
+    margin:0 0 6px 0;
+    text-shadow:0 3px 0 rgba(255,255,255,0.6);
+  }
+  #home .sub{
+    color:var(--plum);
+    opacity:0.7;
+    font-size:clamp(14px,3vw,18px);
+    margin-bottom:10px;
+  }
+  .card-row{
+    display:flex;
+    gap:22px;
+    flex-wrap:wrap;
+    justify-content:center;
+    padding:0 16px;
+  }
+  .game-card{
+    width:min(30vw,180px);
+    height:min(30vw,180px);
+    min-width:130px; min-height:130px;
+    border-radius:32px;
+    border:none;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    gap:8px;
+    box-shadow:0 8px 0 rgba(0,0,0,0.12), 0 10px 20px rgba(0,0,0,0.08);
+    transform:translateY(0);
+    transition:transform .12s ease;
+    cursor:pointer;
+  }
+  .game-card:active{ transform:translateY(6px); box-shadow:0 2px 0 rgba(0,0,0,0.12); }
+  .game-card .emoji{ font-size:clamp(36px,8vw,54px); }
+  .game-card .label{ color:white; font-weight:bold; font-size:clamp(13px,2.6vw,17px); text-align:center; padding:0 8px; }
+  .game-card.ready{ background:var(--coral); }
+  .game-card.soon{ background:#B9AFC7; opacity:0.85; }
+  .game-card .badge{
+    font-size:11px; background:rgba(255,255,255,0.85); color:var(--plum);
+    padding:3px 10px; border-radius:20px; font-weight:bold;
+  }
+
+  /* ---------- BACK BUTTON ---------- */
+  .back-btn{
+    position:absolute; top:16px; left:16px;
+    width:52px; height:52px; border-radius:50%;
+    background:rgba(255,255,255,0.85);
+    border:none;
+    font-size:24px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 4px 0 rgba(0,0,0,0.1);
+    z-index:50;
+  }
+
+  /* ---------- SENSORY GAME ---------- */
+  #game-sensory{
+    background:var(--cream);
+    transition:background-color .4s ease;
+    position:absolute; inset:0;
+  }
+  #bunny-wrap{
+    position:absolute; left:50%; top:50%;
+    transform:translate(-50%,-50%);
+    width:38vmin; height:38vmin;
+    pointer-events:none;
+  }
+  #bunny-wrap svg{ width:100%; height:100%; overflow:visible; }
+  .ear{ transform-origin:50% 100%; }
+  #bunny-wrap.happy .ear-l{ animation:wiggleL .5s ease; }
+  #bunny-wrap.happy .ear-r{ animation:wiggleR .5s ease; }
+  #bunny-wrap.happy #bunny-body{ animation:bounce .5s ease; }
+  @keyframes wiggleL{ 0%{transform:rotate(0)} 30%{transform:rotate(-18deg)} 60%{transform:rotate(10deg)} 100%{transform:rotate(0)} }
+  @keyframes wiggleR{ 0%{transform:rotate(0)} 30%{transform:rotate(18deg)} 60%{transform:rotate(-10deg)} 100%{transform:rotate(0)} }
+  @keyframes bounce{ 0%{transform:translateY(0)} 40%{transform:translateY(-4%)} 100%{transform:translateY(0)} }
+
+  .particle{
+    position:absolute;
+    border-radius:50%;
+    pointer-events:none;
+    will-change:transform,opacity;
+  }
+
+  #sound-gate{
+    position:absolute; inset:0;
+    background:rgba(91,58,126,0.92);
+    display:flex; align-items:center; justify-content:center;
+    flex-direction:column; gap:16px;
+    color:white; text-align:center; z-index:100;
+  }
+  #sound-gate .tap-btn{
+    background:var(--sun); color:var(--plum); border:none;
+    font-weight:bold; font-size:20px;
+    padding:16px 32px; border-radius:40px;
+    box-shadow:0 6px 0 rgba(0,0,0,0.15);
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HOME SCREEN -->
+  <div class="screen active" id="home">
+    <h1>🐰 토끼랑 놀이터</h1>
+    <div class="sub">하고 싶은 놀이를 골라보세요</div>
+    <div class="card-row">
+      <button class="game-card ready" data-target="game-sensory">
+        <div class="emoji">🐰✨</div>
+        <div class="label">토끼랑 콕콕</div>
+      </button>
+      <button class="game-card soon" data-target="game-hidden">
+        <div class="emoji">🖼️</div>
+        <div class="label">숨은그림찾기</div>
+        <div class="badge">곧 만나요</div>
+      </button>
+      <button class="game-card soon" data-target="game-sort">
+        <div class="emoji">🥕🐇</div>
+        <div class="label">당근 먹이기</div>
+        <div class="badge">곧 만나요</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- GAME 1: SENSORY RESPONSE -->
+  <div class="screen" id="game-sensory">
+    <button class="back-btn" data-home>←</button>
+    <div id="bunny-wrap">
+      <svg viewBox="0 0 200 200">
+        <ellipse class="ear ear-l" cx="70" cy="55" rx="16" ry="42" fill="#FFC9D6"/>
+        <ellipse class="ear ear-l" cx="70" cy="55" rx="8" ry="30" fill="#FF8FA3"/>
+        <ellipse class="ear ear-r" cx="130" cy="55" rx="16" ry="42" fill="#FFC9D6"/>
+        <ellipse class="ear ear-r" cx="130" cy="55" rx="8" ry="30" fill="#FF8FA3"/>
+        <g id="bunny-body">
+          <ellipse cx="100" cy="130" rx="62" ry="55" fill="#FFFFFF" stroke="#EADFF0" stroke-width="3"/>
+          <circle cx="78" cy="118" r="8" fill="#5B3A6E"/>
+          <circle cx="122" cy="118" r="8" fill="#5B3A6E"/>
+          <ellipse cx="100" cy="140" rx="10" ry="7" fill="#FF8FA3"/>
+          <path d="M100 147 Q90 158 78 150" stroke="#5B3A6E" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <path d="M100 147 Q110 158 122 150" stroke="#5B3A6E" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <circle cx="65" cy="132" r="9" fill="#FFC9D6" opacity="0.7"/>
+          <circle cx="135" cy="132" r="9" fill="#FFC9D6" opacity="0.7"/>
+        </g>
+      </svg>
+    </div>
+    <div id="sound-gate">
+      <div style="font-size:44px;">🔊</div>
+      <div style="font-size:20px; font-weight:bold;">화면을 눌러서<br>소리를 켜주세요</div>
+      <button class="tap-btn" id="unlock-btn">시작!</button>
+    </div>
+  </div>
+
+  <!-- GAME 2: PLACEHOLDER -->
+  <div class="screen" id="game-hidden">
+    <button class="back-btn" data-home>←</button>
+    <div style="font-size:60px;">🖼️🔧</div>
+    <div style="color:var(--plum); font-weight:bold; font-size:22px; margin-top:12px;">숨은그림찾기는 준비 중이에요!</div>
+  </div>
+
+  <!-- GAME 3: PLACEHOLDER -->
+  <div class="screen" id="game-sort">
+    <button class="back-btn" data-home>←</button>
+    <div style="font-size:60px;">🥕🐇🔧</div>
+    <div style="color:var(--plum); font-weight:bold; font-size:22px; margin-top:12px;">당근 먹이기는 준비 중이에요!</div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Navigation ----------
+  var screens = document.querySelectorAll('.screen');
+  function showScreen(id){
+    screens.forEach(function(s){ s.classList.toggle('active', s.id === id); });
+  }
+  document.querySelectorAll('[data-target]').forEach(function(btn){
+    btn.addEventListener('touchend', function(e){
+      e.preventDefault();
+      showScreen(btn.getAttribute('data-target'));
+    }, {passive:false});
+    btn.addEventListener('click', function(){ showScreen(btn.getAttribute('data-target')); });
+  });
+  document.querySelectorAll('[data-home]').forEach(function(btn){
+    btn.addEventListener('touchend', function(e){ e.preventDefault(); showScreen('home'); }, {passive:false});
+    btn.addEventListener('click', function(){ showScreen('home'); });
+  });
+
+  // Block iOS gestures globally (pinch-zoom, double-tap-zoom, pull-to-refresh)
+  document.addEventListener('gesturestart', function(e){ e.preventDefault(); });
+  document.addEventListener('touchmove', function(e){ e.preventDefault(); }, {passive:false});
+  var lastTouchEnd = 0;
+  document.addEventListener('touchend', function(e){
+    var now = Date.now();
+    if (now - lastTouchEnd <= 300) e.preventDefault();
+    lastTouchEnd = now;
+  }, {passive:false});
+
+  // ---------- Audio ----------
+  var audioCtx = null;
+  function ensureCtx(){
+    if (!audioCtx){
+      var AC = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AC();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  function playTone(freq, duration, delay, gain){
+    var ctx = ensureCtx();
+    var t0 = ctx.currentTime + (delay||0);
+    var osc = ctx.createOscillator();
+    var g = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, t0);
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(gain||0.25, t0+0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, t0+duration);
+    osc.connect(g); g.connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0+duration+0.02);
+  }
+
+  function playPop(){
+    var freq = 500 + Math.random()*400;
+    playTone(freq, 0.18, 0, 0.2);
+    playTone(freq*1.5, 0.12, 0.02, 0.1);
+  }
+
+  function playGiggle(){
+    var base = 700;
+    [0,0.09,0.18].forEach(function(delay, i){
+      playTone(base + i*160, 0.16, delay, 0.22);
+    });
+  }
+
+  var unlockBtn = document.getElementById('unlock-btn');
+  var soundGate = document.getElementById('sound-gate');
+  function unlockAudio(){
+    ensureCtx();
+    playTone(880, 0.15, 0, 0.15);
+    soundGate.style.display = 'none';
+  }
+  unlockBtn.addEventListener('touchend', function(e){ e.preventDefault(); unlockAudio(); }, {passive:false});
+  unlockBtn.addEventListener('click', unlockAudio);
+
+  // ---------- Sensory game: particles ----------
+  var gameEl = document.getElementById('game-sensory');
+  var bunnyWrap = document.getElementById('bunny-wrap');
+  var palette = ['#FF8FA3','#FFD966','#8CD790','#8FD3FF','#C9A6E0'];
+  var colorIdx = 0;
+
+  function spawnParticle(x, y){
+    var p = document.createElement('div');
+    p.className = 'particle';
+    var size = 26 + Math.random()*30;
+    var color = palette[colorIdx % palette.length];
+    colorIdx++;
+    p.style.width = size+'px';
+    p.style.height = size+'px';
+    p.style.left = (x - size/2)+'px';
+    p.style.top = (y - size/2)+'px';
+    p.style.background = color;
+    p.style.opacity = '0.85';
+    gameEl.appendChild(p);
+
+    var dx = (Math.random()-0.5) * 120;
+    var dy = -(60 + Math.random()*100);
+    var start = null;
+    var duration = 650;
+
+    function step(ts){
+      if (!start) start = ts;
+      var progress = Math.min((ts-start)/duration, 1);
+      p.style.transform = 'translate(' + (dx*progress) + 'px,' + (dy*progress) + 'px) scale(' + (1 - progress*0.4) + ')';
+      p.style.opacity = String(0.85 * (1-progress));
+      if (progress < 1){
+        requestAnimationFrame(step);
+      } else {
+        p.remove();
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  function flashBackground(){
+    var color = palette[colorIdx % palette.length];
+    gameEl.style.backgroundColor = color + '33'; // soft tint
+    clearTimeout(flashBackground._t);
+    flashBackground._t = setTimeout(function(){
+      gameEl.style.backgroundColor = '#FFF8EC';
+    }, 280);
+  }
+
+  function isTouchOnBunny(x, y){
+    var rect = bunnyWrap.getBoundingClientRect();
+    var cx = rect.left + rect.width/2;
+    var cy = rect.top + rect.height/2;
+    var r = rect.width/2 * 0.9;
+    var dist = Math.hypot(x-cx, y-cy);
+    return dist < r;
+  }
+
+  var bunnyTimer = null;
+  function reactBunny(){
+    bunnyWrap.classList.remove('happy');
+    void bunnyWrap.offsetWidth; // restart animation
+    bunnyWrap.classList.add('happy');
+    playGiggle();
+    clearTimeout(bunnyTimer);
+    bunnyTimer = setTimeout(function(){ bunnyWrap.classList.remove('happy'); }, 500);
+  }
+
+  function handleTouches(touchList){
+    for (var i=0; i<touchList.length; i++){
+      var t = touchList[i];
+      spawnParticle(t.clientX, t.clientY);
+      if (isTouchOnBunny(t.clientX, t.clientY)){
+        reactBunny();
+      } else {
+        playPop();
+        flashBackground();
+      }
+    }
+  }
+
+  gameEl.addEventListener('touchstart', function(e){
+    e.preventDefault();
+    ensureCtx();
+    handleTouches(e.changedTouches);
+  }, {passive:false});
+
+  // Mouse fallback for desktop testing
+  gameEl.addEventListener('mousedown', function(e){
+    handleTouches([{clientX:e.clientX, clientY:e.clientY}]);
+  });
+
+})();
+</script>
+</body>
+</html>

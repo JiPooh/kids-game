@@ -72,156 +72,30 @@
   "use strict";
 
   // ---------- Character system ----------
-  var CHARACTERS = {
-    bunny: {
-      idle: `
-        <defs>
-          <radialGradient id="bunnyIdleBody" cx="42%" cy="32%" r="75%">
-            <stop offset="0%" stop-color="#FFFFFF"/>
-            <stop offset="100%" stop-color="#F7E9F3"/>
-          </radialGradient>
-          <linearGradient id="bunnyIdleEar" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#FFE1EA"/>
-            <stop offset="100%" stop-color="#FFB6C8"/>
-          </linearGradient>
-        </defs>
-        <ellipse cx="100" cy="184" rx="46" ry="9" fill="rgba(91,58,126,0.12)"/>
-        <g class="ear ear-l" transform="rotate(-8 70 96)">
-          <ellipse cx="70" cy="52" rx="17" ry="44" fill="url(#bunnyIdleEar)" stroke="#F3B9CB" stroke-width="1.5"/>
-          <ellipse cx="70" cy="58" rx="8" ry="30" fill="#FF8FA3"/>
-        </g>
-        <g class="ear ear-r" transform="rotate(8 130 96)">
-          <ellipse cx="130" cy="52" rx="17" ry="44" fill="url(#bunnyIdleEar)" stroke="#F3B9CB" stroke-width="1.5"/>
-          <ellipse cx="130" cy="58" rx="8" ry="30" fill="#FF8FA3"/>
-        </g>
-        <g id="bunny-body">
-          <ellipse cx="100" cy="130" rx="62" ry="55" fill="url(#bunnyIdleBody)" stroke="#EADFF0" stroke-width="3"/>
-          <path d="M62 96 Q70 84 80 90" stroke="#F3E7F7" stroke-width="4" fill="none" stroke-linecap="round"/>
-          <path d="M138 96 Q130 84 120 90" stroke="#F3E7F7" stroke-width="4" fill="none" stroke-linecap="round"/>
-          <ellipse cx="60" cy="150" rx="11" ry="8" fill="#FBEFF7" stroke="#EADFF0" stroke-width="2"/>
-          <ellipse cx="140" cy="150" rx="11" ry="8" fill="#FBEFF7" stroke="#EADFF0" stroke-width="2"/>
-          <circle cx="65" cy="132" r="9" fill="#FFC9D6" opacity="0.7"/>
-          <circle cx="135" cy="132" r="9" fill="#FFC9D6" opacity="0.7"/>
-          <path d="M55 115 L38 110 M55 119 L36 119 M55 123 L38 128" stroke="#D9C3E0" stroke-width="1.6" stroke-linecap="round"/>
-          <path d="M145 115 L162 110 M145 119 L164 119 M145 123 L162 128" stroke="#D9C3E0" stroke-width="1.6" stroke-linecap="round"/>
-          <circle cx="78" cy="118" r="8" fill="#5B3A6E"/>
-          <circle cx="122" cy="118" r="8" fill="#5B3A6E"/>
-          <circle cx="80.5" cy="115" r="2.4" fill="white"/>
-          <circle cx="124.5" cy="115" r="2.4" fill="white"/>
-          <path d="M72 108 Q78 104 84 107" stroke="#5B3A6E" stroke-width="2" fill="none" stroke-linecap="round"/>
-          <path d="M128 108 Q122 104 116 107" stroke="#5B3A6E" stroke-width="2" fill="none" stroke-linecap="round"/>
-          <ellipse cx="100" cy="140" rx="10" ry="7" fill="#FF8FA3"/>
-          <path d="M100 147 Q90 158 78 150" stroke="#5B3A6E" stroke-width="4" fill="none" stroke-linecap="round"/>
-          <path d="M100 147 Q110 158 122 150" stroke="#5B3A6E" stroke-width="4" fill="none" stroke-linecap="round"/>
-        </g>`,
-      sort: `
-        <defs>
-          <radialGradient id="bunnySortBody" cx="42%" cy="30%" r="75%">
-            <stop offset="0%" stop-color="#FFFFFF"/>
-            <stop offset="100%" stop-color="#F1F7E9"/>
-          </radialGradient>
-          <linearGradient id="bunnySortEar" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#FFE1EA"/>
-            <stop offset="100%" stop-color="#FFB6C8"/>
-          </linearGradient>
-        </defs>
-        <ellipse cx="110" cy="196" rx="54" ry="9" fill="rgba(91,58,126,0.12)"/>
-        <g class="ear" transform="rotate(-8 82 88)">
-          <ellipse cx="82" cy="44" rx="15" ry="44" fill="url(#bunnySortEar)" stroke="#F3B9CB" stroke-width="1.5"/>
-          <ellipse cx="82" cy="50" rx="7" ry="33" fill="#FF8FA3"/>
-        </g>
-        <g class="ear" transform="rotate(8 138 88)">
-          <ellipse cx="138" cy="44" rx="15" ry="44" fill="url(#bunnySortEar)" stroke="#F3B9CB" stroke-width="1.5"/>
-          <ellipse cx="138" cy="50" rx="7" ry="33" fill="#FF8FA3"/>
-        </g>
-        <g id="sort-body">
-          <ellipse cx="110" cy="135" rx="72" ry="62" fill="url(#bunnySortBody)" stroke="#DDEBD0" stroke-width="3"/>
-          <ellipse cx="68" cy="152" rx="12" ry="9" fill="#FBFFF6" stroke="#DDEBD0" stroke-width="2"/>
-          <ellipse cx="152" cy="152" rx="12" ry="9" fill="#FBFFF6" stroke="#DDEBD0" stroke-width="2"/>
-          <circle cx="70" cy="132" r="10" fill="#FFC9D6" opacity="0.7"/>
-          <circle cx="150" cy="132" r="10" fill="#FFC9D6" opacity="0.7"/>
-          <circle cx="85" cy="118" r="9" fill="#5B3A6E"/>
-          <circle cx="135" cy="118" r="9" fill="#5B3A6E"/>
-          <circle cx="87.8" cy="114.5" r="2.6" fill="white"/>
-          <circle cx="137.8" cy="114.5" r="2.6" fill="white"/>
-          <ellipse id="mouth-shape" cx="110" cy="155" rx="26" ry="19" fill="#B5406B"/>
-          <ellipse cx="110" cy="160" rx="16" ry="9" fill="#7A2C4C"/>
-        </g>`
-    },
-    shark: {
-      idle: `
-        <defs>
-          <radialGradient id="sharkIdleBody" cx="42%" cy="28%" r="80%">
-            <stop offset="0%" stop-color="#AFDCF0"/>
-            <stop offset="100%" stop-color="#7EB8D8"/>
-          </radialGradient>
-          <linearGradient id="sharkIdleFin" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#8AC6E4"/>
-            <stop offset="100%" stop-color="#5B95AF"/>
-          </linearGradient>
-        </defs>
-        <ellipse cx="100" cy="180" rx="48" ry="9" fill="rgba(27,58,75,0.15)"/>
-        <path d="M88 90 L100 38 L112 90 Q100 78 88 90Z" fill="url(#sharkIdleFin)" stroke="#4A7F98" stroke-width="2"/>
-        <g class="ear ear-l" transform="rotate(-20 65 95)">
-          <path d="M65 95 Q30 70 14 58 Q34 96 48 118 Q58 108 65 95Z" fill="url(#sharkIdleFin)" stroke="#4A7F98" stroke-width="2"/>
-        </g>
-        <g class="ear ear-r" transform="rotate(20 135 95)">
-          <path d="M135 95 Q170 70 186 58 Q166 96 152 118 Q142 108 135 95Z" fill="url(#sharkIdleFin)" stroke="#4A7F98" stroke-width="2"/>
-        </g>
-        <g id="bunny-body">
-          <ellipse cx="100" cy="125" rx="65" ry="55" fill="url(#sharkIdleBody)" stroke="#5B95AF" stroke-width="3"/>
-          <ellipse cx="100" cy="150" rx="42" ry="24" fill="#EAF8FC"/>
-          <path d="M58 100 Q52 104 50 110 M62 106 Q56 110 54 116" stroke="#4A7F98" stroke-width="2.4" stroke-linecap="round" opacity="0.55"/>
-          <path d="M142 100 Q148 104 150 110 M138 106 Q144 110 146 116" stroke="#4A7F98" stroke-width="2.4" stroke-linecap="round" opacity="0.55"/>
-          <circle cx="78" cy="112" r="8" fill="#1B3A4B"/>
-          <circle cx="122" cy="112" r="8" fill="#1B3A4B"/>
-          <circle cx="80.5" cy="109" r="2.6" fill="white"/>
-          <circle cx="124.5" cy="109" r="2.6" fill="white"/>
-          <path d="M75 138 Q100 152 125 138 L120 145 Q100 156 80 145 Z" fill="#1B3A4B"/>
-          <path d="M78 141 L83 148 L88 141 Z M96 143 L101 150 L106 143 Z M114 141 L119 148 L124 141 Z" fill="white"/>
-        </g>`,
-      sort: `
-        <defs>
-          <radialGradient id="sharkSortBody" cx="42%" cy="26%" r="80%">
-            <stop offset="0%" stop-color="#AFDCF0"/>
-            <stop offset="100%" stop-color="#7EB8D8"/>
-          </radialGradient>
-          <linearGradient id="sharkSortFin" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#8AC6E4"/>
-            <stop offset="100%" stop-color="#5B95AF"/>
-          </linearGradient>
-        </defs>
-        <ellipse cx="110" cy="196" rx="54" ry="9" fill="rgba(27,58,75,0.15)"/>
-        <path d="M98 95 L110 45 L122 95 Q110 83 98 95Z" fill="url(#sharkSortFin)" stroke="#4A7F98" stroke-width="2"/>
-        <g class="ear" transform="rotate(-22 70 105)">
-          <path d="M70 105 Q34 80 18 68 Q40 108 52 128 Q62 118 70 105Z" fill="url(#sharkSortFin)" stroke="#4A7F98" stroke-width="2"/>
-        </g>
-        <g class="ear" transform="rotate(22 150 105)">
-          <path d="M150 105 Q186 80 202 68 Q180 108 168 128 Q158 118 150 105Z" fill="url(#sharkSortFin)" stroke="#4A7F98" stroke-width="2"/>
-        </g>
-        <g id="sort-body">
-          <ellipse cx="110" cy="135" rx="72" ry="62" fill="url(#sharkSortBody)" stroke="#5B95AF" stroke-width="3"/>
-          <ellipse cx="110" cy="162" rx="46" ry="26" fill="#EAF8FC"/>
-          <path d="M65 108 Q58 112 56 119 M69 115 Q62 119 60 126" stroke="#4A7F98" stroke-width="2.6" stroke-linecap="round" opacity="0.55"/>
-          <path d="M155 108 Q162 112 164 119 M151 115 Q158 119 160 126" stroke="#4A7F98" stroke-width="2.6" stroke-linecap="round" opacity="0.55"/>
-          <circle cx="85" cy="118" r="9" fill="#1B3A4B"/>
-          <circle cx="135" cy="118" r="9" fill="#1B3A4B"/>
-          <circle cx="87.8" cy="114.5" r="3" fill="white"/>
-          <circle cx="137.8" cy="114.5" r="3" fill="white"/>
-          <ellipse id="mouth-shape" cx="110" cy="155" rx="26" ry="19" fill="#1B3A4B"/>
-          <path d="M88 148 L96 158 L104 148 Z M108 150 L116 160 L124 150 Z M96 160 L104 168 L112 160 Z" fill="white"/>
-        </g>`
-    }
+  var CHARACTER_IMAGES = {
+    bunny: 'assets/bunny.svg',
+    shark: 'assets/shark.svg'
+  };
+  // mouth-hit target position differs per character since the artwork isn't hand-fit to this app
+  var MOUTH_HIT_POS = {
+    bunny: { left: '50%', top: '76%' },
+    shark: { left: '32%', top: '58%' }
   };
   var selectedChar = 'bunny';
 
   function renderSensoryChar(){
     var el = document.getElementById('bunny-wrap');
-    if (el) el.innerHTML = '<svg viewBox="0 0 200 200">' + CHARACTERS[selectedChar].idle + '</svg>';
+    if (el) el.innerHTML = '<img class="char-img" src="' + CHARACTER_IMAGES[selectedChar] + '" alt="' + selectedChar + '">';
   }
   function renderSortChar(){
     var el = document.getElementById('sort-bunny');
-    if (el) el.innerHTML = '<svg viewBox="0 0 220 220">' + CHARACTERS[selectedChar].sort + '</svg><div id="mouth-hit"></div>';
+    if (el) el.innerHTML = '<img class="char-img" src="' + CHARACTER_IMAGES[selectedChar] + '" alt="' + selectedChar + '"><div id="mouth-hit"></div>';
+    var mouthHitEl = document.getElementById('mouth-hit');
+    var pos = MOUTH_HIT_POS[selectedChar];
+    if (mouthHitEl && pos){
+      mouthHitEl.style.left = pos.left;
+      mouthHitEl.style.top = pos.top;
+    }
     var emojiEl = document.getElementById('sort-food-emoji');
     if (emojiEl) emojiEl.textContent = selectedChar === 'shark' ? '🐟' : '🥕';
   }
@@ -428,36 +302,20 @@
   var slotY = 0.82; // y fraction of screen height
   var activeDrags = {}; // touch identifier -> {el, offsetX, offsetY}
 
-  function carrotSVG(){
-    return '<svg viewBox="0 0 60 96">' +
-      '<path d="M30 8 L46 90 Q30 100 14 90 Z" fill="#FF9F45"/>' +
-      '<path d="M30 8 L40 88 Q30 94 20 88 Z" fill="#FFB565"/>' +
-      '<path d="M30 4 L20 -14" stroke="#4E9F52" stroke-width="6" stroke-linecap="round"/>' +
-      '<path d="M30 4 L30 -18" stroke="#5FBE63" stroke-width="6" stroke-linecap="round"/>' +
-      '<path d="M30 4 L40 -14" stroke="#4E9F52" stroke-width="6" stroke-linecap="round"/>' +
-      '</svg>';
-  }
+  var FOOD_SETS = {
+    bunny: ['assets/carrot.svg', 'assets/apple.svg', 'assets/strawberry.svg'],
+    shark: ['assets/fish.svg', 'assets/shrimp.svg', 'assets/squid.svg']
+  };
 
-  function fishSVG(){
-    return '<svg viewBox="0 0 60 96">' +
-      '<ellipse cx="30" cy="40" rx="22" ry="30" fill="#7EC8E3" stroke="#4F9BC0" stroke-width="3"/>' +
-      '<path d="M30 66 L16 94 L30 78 L44 94 Z" fill="#4F9BC0"/>' +
-      '<path d="M10 36 Q0 32 2 44 Q4 54 14 48 Z" fill="#9BD7EC" stroke="#4F9BC0" stroke-width="1.5"/>' +
-      '<path d="M50 36 Q60 32 58 44 Q56 54 46 48 Z" fill="#9BD7EC" stroke="#4F9BC0" stroke-width="1.5"/>' +
-      '<circle cx="23" cy="26" r="5" fill="#1F3B4D"/>' +
-      '<circle cx="21" cy="24" r="1.6" fill="white"/>' +
-      '<path d="M18 46 Q30 54 42 46" stroke="#1F3B4D" stroke-width="2.5" fill="none" stroke-linecap="round"/>' +
-      '</svg>';
-  }
-
-  function foodSVG(){
-    return selectedChar === 'shark' ? fishSVG() : carrotSVG();
+  function foodImageFor(slotIndex){
+    var set = FOOD_SETS[selectedChar] || FOOD_SETS.bunny;
+    return set[slotIndex % set.length];
   }
 
   function makeCarrotAt(slotIndex){
     var w = window.innerWidth, h = window.innerHeight;
-    var homeLeft = w*carrotSlots[slotIndex] - 32;
-    var homeTop = h*slotY - 48;
+    var homeLeft = w*carrotSlots[slotIndex] - 36;
+    var homeTop = h*slotY - 36;
     var el = document.createElement('div');
     el.className = 'carrot';
     el.style.left = homeLeft+'px';
@@ -466,7 +324,7 @@
     el.dataset.slot = String(slotIndex);
     el.dataset.homeLeft = String(homeLeft);
     el.dataset.homeTop = String(homeTop);
-    el.innerHTML = foodSVG();
+    el.innerHTML = '<img class="food-img" src="' + foodImageFor(slotIndex) + '" alt="">';
     sortEl.appendChild(el);
     requestAnimationFrame(function(){
       el.style.transition = 'transform .25s cubic-bezier(.34,1.6,.64,1)';

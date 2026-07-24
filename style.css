@@ -118,14 +118,18 @@ html,body{
   width:38vmin; height:38vmin;
   pointer-events:none;
 }
-#bunny-wrap svg{ width:100%; height:100%; overflow:visible; }
-.ear{ transform-origin:50% 100%; }
-#bunny-wrap.happy .ear-l{ animation:wiggleL .5s ease; }
-#bunny-wrap.happy .ear-r{ animation:wiggleR .5s ease; }
-#bunny-wrap.happy #bunny-body{ animation:bounce .5s ease; }
-@keyframes wiggleL{ 0%{transform:rotate(0)} 30%{transform:rotate(-18deg)} 60%{transform:rotate(10deg)} 100%{transform:rotate(0)} }
-@keyframes wiggleR{ 0%{transform:rotate(0)} 30%{transform:rotate(18deg)} 60%{transform:rotate(-10deg)} 100%{transform:rotate(0)} }
-@keyframes bounce{ 0%{transform:translateY(0)} 40%{transform:translateY(-4%)} 100%{transform:translateY(0)} }
+.char-img{
+  width:100%; height:100%;
+  display:block;
+  filter:drop-shadow(0 8px 10px rgba(0,0,0,0.18));
+}
+#bunny-wrap.happy .char-img{ animation:charBounce .5s ease; }
+@keyframes charBounce{
+  0%{ transform:scale(1) rotate(0deg); }
+  30%{ transform:scale(1.12,0.88) rotate(-6deg); }
+  60%{ transform:scale(0.94,1.08) rotate(4deg); }
+  100%{ transform:scale(1) rotate(0deg); }
+}
 
 .particle{
   position:absolute;
@@ -168,11 +172,7 @@ html,body{
   pointer-events:none;
   z-index:5;
 }
-#sort-bunny svg{ width:100%; height:100%; overflow:visible; }
-#sort-bunny.eating #sort-body{ animation:bounce .4s ease; }
-#mouth-shape{ transform-origin:110px 155px; }
-#sort-bunny.eating #mouth-shape{ animation:chew .4s ease; }
-@keyframes chew{ 0%{transform:scaleY(1)} 40%{transform:scaleY(0.25)} 100%{transform:scaleY(1)} }
+#sort-bunny.eating .char-img{ animation:charBounce .4s ease; }
 #mouth-hit{
   position:absolute; left:50%; top:70%;
   width:28%; height:20%;
@@ -181,12 +181,12 @@ html,body{
 }
 .carrot{
   position:absolute;
-  width:64px; height:96px;
+  width:72px; height:72px;
   touch-action:none;
   z-index:10;
   transition:none;
 }
-.carrot svg{ width:100%; height:100%; overflow:visible; filter:drop-shadow(0 4px 4px rgba(0,0,0,0.15)); }
+.carrot .food-img{ width:100%; height:100%; display:block; object-fit:contain; filter:drop-shadow(0 4px 4px rgba(0,0,0,0.15)); }
 .carrot.dragging{ z-index:30; }
 .cheer-text{
   position:absolute; left:50%; top:38%;

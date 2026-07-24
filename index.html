@@ -84,6 +84,23 @@
     padding:3px 10px; border-radius:20px; font-weight:bold;
   }
 
+  /* ---------- CHARACTER PICKER ---------- */
+  .char-picker{
+    display:flex; gap:14px; margin-bottom:6px;
+  }
+  .char-btn{
+    width:56px; height:56px; border-radius:50%;
+    border:3px solid transparent;
+    background:white;
+    font-size:28px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 4px 0 rgba(0,0,0,0.1);
+  }
+  .char-btn.selected{
+    border-color:var(--sun);
+    box-shadow:0 4px 0 rgba(0,0,0,0.1), 0 0 0 4px rgba(255,217,102,0.4);
+  }
+
   /* ---------- BACK BUTTON ---------- */
   .back-btn{
     position:absolute; top:16px; left:16px;
@@ -203,6 +220,10 @@
   <div class="screen active" id="home">
     <h1>🐰 토끼랑 놀이터</h1>
     <div class="sub">하고 싶은 놀이를 골라보세요</div>
+    <div class="char-picker" id="char-picker">
+      <button class="char-btn selected" data-char="bunny">🐰</button>
+      <button class="char-btn" data-char="shark">🦈</button>
+    </div>
     <div class="card-row">
       <button class="game-card ready" data-target="game-sensory">
         <div class="emoji">🐰✨</div>
@@ -223,24 +244,7 @@
   <!-- GAME 1: SENSORY RESPONSE -->
   <div class="screen" id="game-sensory">
     <button class="back-btn" data-home>←</button>
-    <div id="bunny-wrap">
-      <svg viewBox="0 0 200 200">
-        <ellipse class="ear ear-l" cx="70" cy="55" rx="16" ry="42" fill="#FFC9D6"/>
-        <ellipse class="ear ear-l" cx="70" cy="55" rx="8" ry="30" fill="#FF8FA3"/>
-        <ellipse class="ear ear-r" cx="130" cy="55" rx="16" ry="42" fill="#FFC9D6"/>
-        <ellipse class="ear ear-r" cx="130" cy="55" rx="8" ry="30" fill="#FF8FA3"/>
-        <g id="bunny-body">
-          <ellipse cx="100" cy="130" rx="62" ry="55" fill="#FFFFFF" stroke="#EADFF0" stroke-width="3"/>
-          <circle cx="78" cy="118" r="8" fill="#5B3A6E"/>
-          <circle cx="122" cy="118" r="8" fill="#5B3A6E"/>
-          <ellipse cx="100" cy="140" rx="10" ry="7" fill="#FF8FA3"/>
-          <path d="M100 147 Q90 158 78 150" stroke="#5B3A6E" stroke-width="4" fill="none" stroke-linecap="round"/>
-          <path d="M100 147 Q110 158 122 150" stroke="#5B3A6E" stroke-width="4" fill="none" stroke-linecap="round"/>
-          <circle cx="65" cy="132" r="9" fill="#FFC9D6" opacity="0.7"/>
-          <circle cx="135" cy="132" r="9" fill="#FFC9D6" opacity="0.7"/>
-        </g>
-      </svg>
-    </div>
+    <div id="bunny-wrap"></div>
     <div id="sound-gate">
       <div style="font-size:44px;">🔊</div>
       <div style="font-size:20px; font-weight:bold;">화면을 눌러서<br>소리를 켜주세요</div>
@@ -260,8 +264,34 @@
     <button class="back-btn" data-home>←</button>
     <div class="sort-counter"><span id="sort-count-num">0</span> 🥕</div>
     <div class="cheer-text" id="cheer-text">잘했어요! 🎉</div>
-    <div id="sort-bunny">
-      <svg viewBox="0 0 220 220">
+    <div id="sort-bunny"></div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Character system ----------
+  var CHARACTERS = {
+    bunny: {
+      idle: `
+        <ellipse class="ear ear-l" cx="70" cy="55" rx="16" ry="42" fill="#FFC9D6"/>
+        <ellipse class="ear ear-l" cx="70" cy="55" rx="8" ry="30" fill="#FF8FA3"/>
+        <ellipse class="ear ear-r" cx="130" cy="55" rx="16" ry="42" fill="#FFC9D6"/>
+        <ellipse class="ear ear-r" cx="130" cy="55" rx="8" ry="30" fill="#FF8FA3"/>
+        <g id="bunny-body">
+          <ellipse cx="100" cy="130" rx="62" ry="55" fill="#FFFFFF" stroke="#EADFF0" stroke-width="3"/>
+          <circle cx="78" cy="118" r="8" fill="#5B3A6E"/>
+          <circle cx="122" cy="118" r="8" fill="#5B3A6E"/>
+          <ellipse cx="100" cy="140" rx="10" ry="7" fill="#FF8FA3"/>
+          <path d="M100 147 Q90 158 78 150" stroke="#5B3A6E" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <path d="M100 147 Q110 158 122 150" stroke="#5B3A6E" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <circle cx="65" cy="132" r="9" fill="#FFC9D6" opacity="0.7"/>
+          <circle cx="135" cy="132" r="9" fill="#FFC9D6" opacity="0.7"/>
+        </g>`,
+      sort: `
         <ellipse class="ear" cx="82" cy="42" rx="15" ry="38" fill="#FFC9D6" transform="rotate(-8 82 42)"/>
         <ellipse class="ear" cx="82" cy="42" rx="7" ry="27" fill="#FF8FA3" transform="rotate(-8 82 42)"/>
         <ellipse class="ear" cx="138" cy="42" rx="15" ry="38" fill="#FFC9D6" transform="rotate(8 138 42)"/>
@@ -274,17 +304,56 @@
           <circle cx="150" cy="132" r="10" fill="#FFC9D6" opacity="0.7"/>
           <ellipse id="mouth-shape" cx="110" cy="155" rx="26" ry="19" fill="#B5406B"/>
           <ellipse cx="110" cy="160" rx="16" ry="9" fill="#7A2C4C"/>
-        </g>
-      </svg>
-      <div id="mouth-hit"></div>
-    </div>
-  </div>
+        </g>`
+    },
+    shark: {
+      idle: `
+        <ellipse class="ear ear-l" cx="60" cy="60" rx="18" ry="30" fill="#6FB6D9" transform="rotate(-25 60 60)"/>
+        <ellipse class="ear ear-r" cx="140" cy="60" rx="18" ry="30" fill="#6FB6D9" transform="rotate(25 140 60)"/>
+        <g id="bunny-body">
+          <ellipse cx="100" cy="125" rx="65" ry="55" fill="#8FC5DE" stroke="#5B95AF" stroke-width="3"/>
+          <ellipse cx="100" cy="150" rx="42" ry="24" fill="#EAF8FC"/>
+          <circle cx="78" cy="112" r="8" fill="#1B3A4B"/>
+          <circle cx="122" cy="112" r="8" fill="#1B3A4B"/>
+          <circle cx="78" cy="110" r="2.5" fill="white"/>
+          <circle cx="122" cy="110" r="2.5" fill="white"/>
+          <path d="M75 138 Q100 152 125 138 L120 145 Q100 156 80 145 Z" fill="#1B3A4B"/>
+          <path d="M78 141 L83 148 L88 141 Z M96 143 L101 150 L106 143 Z M114 141 L119 148 L124 141 Z" fill="white"/>
+        </g>`,
+      sort: `
+        <ellipse class="ear" cx="66" cy="65" rx="20" ry="34" fill="#6FB6D9" transform="rotate(-25 66 65)"/>
+        <ellipse class="ear" cx="154" cy="65" rx="20" ry="34" fill="#6FB6D9" transform="rotate(25 154 65)"/>
+        <g id="sort-body">
+          <ellipse cx="110" cy="135" rx="72" ry="62" fill="#8FC5DE" stroke="#5B95AF" stroke-width="3"/>
+          <ellipse cx="110" cy="162" rx="46" ry="26" fill="#EAF8FC"/>
+          <circle cx="85" cy="118" r="9" fill="#1B3A4B"/>
+          <circle cx="135" cy="118" r="9" fill="#1B3A4B"/>
+          <circle cx="85" cy="116" r="3" fill="white"/>
+          <circle cx="135" cy="116" r="3" fill="white"/>
+          <ellipse id="mouth-shape" cx="110" cy="155" rx="26" ry="19" fill="#1B3A4B"/>
+          <path d="M88 148 L96 158 L104 148 Z M108 150 L116 160 L124 150 Z M96 160 L104 168 L112 160 Z" fill="white"/>
+        </g>`
+    }
+  };
+  var selectedChar = 'bunny';
 
-</div>
+  function renderSensoryChar(){
+    var el = document.getElementById('bunny-wrap');
+    if (el) el.innerHTML = '<svg viewBox="0 0 200 200">' + CHARACTERS[selectedChar].idle + '</svg>';
+  }
+  function renderSortChar(){
+    var el = document.getElementById('sort-bunny');
+    if (el) el.innerHTML = '<svg viewBox="0 0 220 220">' + CHARACTERS[selectedChar].sort + '</svg><div id="mouth-hit"></div>';
+  }
 
-<script>
-(function(){
-  "use strict";
+  document.querySelectorAll('.char-btn').forEach(function(btn){
+    function selectChar(){
+      selectedChar = btn.getAttribute('data-char');
+      document.querySelectorAll('.char-btn').forEach(function(b){ b.classList.toggle('selected', b === btn); });
+    }
+    btn.addEventListener('touchend', function(e){ e.preventDefault(); selectChar(); }, {passive:false});
+    btn.addEventListener('click', selectChar);
+  });
 
   // ---------- Navigation ----------
   var screens = document.querySelectorAll('.screen');
@@ -292,11 +361,17 @@
     screens.forEach(function(s){ s.classList.toggle('active', s.id === id); });
   }
   document.querySelectorAll('[data-target]').forEach(function(btn){
+    function openTarget(){
+      var target = btn.getAttribute('data-target');
+      if (target === 'game-sensory') renderSensoryChar();
+      if (target === 'game-sort') renderSortChar();
+      showScreen(target);
+    }
     btn.addEventListener('touchend', function(e){
       e.preventDefault();
-      showScreen(btn.getAttribute('data-target'));
+      openTarget();
     }, {passive:false});
-    btn.addEventListener('click', function(){ showScreen(btn.getAttribute('data-target')); });
+    btn.addEventListener('click', openTarget);
   });
   document.querySelectorAll('[data-home]').forEach(function(btn){
     btn.addEventListener('touchend', function(e){ e.preventDefault(); showScreen('home'); }, {passive:false});
@@ -466,7 +541,6 @@
 
   var sortEl = document.getElementById('game-sort');
   var sortBunny = document.getElementById('sort-bunny');
-  var mouthHit = document.getElementById('mouth-hit');
   var countNumEl = document.getElementById('sort-count-num');
   var cheerTextEl = document.getElementById('cheer-text');
   var fedCount = 0;
@@ -609,6 +683,7 @@
     var carrotRect = el.getBoundingClientRect();
     var cx = carrotRect.left + carrotRect.width/2;
     var cy = carrotRect.top + carrotRect.height*0.3;
+    var mouthHit = document.getElementById('mouth-hit');
     var mouthRect = mouthHit.getBoundingClientRect();
     var mx = mouthRect.left + mouthRect.width/2;
     var my = mouthRect.top + mouthRect.height/2;

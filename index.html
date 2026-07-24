@@ -19,16 +19,16 @@
     </div>
     <div class="card-row">
       <button class="game-card ready" data-target="game-sensory">
-        <div class="emoji">🐰✨</div>
-        <div class="label">토끼랑 콕콕</div>
+        <div class="emoji" id="sensory-card-emoji">🐰✨</div>
+        <div class="label" id="sensory-card-label">토끼랑 콕콕</div>
       </button>
       <button class="game-card ready" data-target="game-hidden">
         <div class="emoji">🖼️</div>
         <div class="label">숨은그림찾기</div>
       </button>
       <button class="game-card ready" data-target="game-sort">
-        <div class="emoji">🥕🐇</div>
-        <div class="label">당근 먹이기</div>
+        <div class="emoji" id="sort-card-emoji">🥕🐇</div>
+        <div class="label" id="sort-card-label">당근 먹이기</div>
       </button>
     </div>
   </div>
@@ -83,6 +83,19 @@
   };
   var selectedChar = 'bunny';
 
+  var HOME_CARD_LABELS = {
+    bunny: { sensoryEmoji: '🐰✨', sensoryLabel: '토끼랑 콕콕', sortEmoji: '🥕🐇', sortLabel: '당근 먹이기' },
+    shark: { sensoryEmoji: '🦈✨', sensoryLabel: '상어랑 콕콕', sortEmoji: '🐟🦈', sortLabel: '물고기 먹이기' }
+  };
+
+  function updateHomeCards(){
+    var labels = HOME_CARD_LABELS[selectedChar] || HOME_CARD_LABELS.bunny;
+    document.getElementById('sensory-card-emoji').textContent = labels.sensoryEmoji;
+    document.getElementById('sensory-card-label').textContent = labels.sensoryLabel;
+    document.getElementById('sort-card-emoji').textContent = labels.sortEmoji;
+    document.getElementById('sort-card-label').textContent = labels.sortLabel;
+  }
+
   function renderSensoryChar(){
     var el = document.getElementById('bunny-wrap');
     if (el) el.innerHTML = '<img class="char-img" src="' + CHARACTER_IMAGES[selectedChar] + '" alt="' + selectedChar + '">';
@@ -104,6 +117,7 @@
     function selectChar(){
       selectedChar = btn.getAttribute('data-char');
       document.querySelectorAll('.char-btn').forEach(function(b){ b.classList.toggle('selected', b === btn); });
+      updateHomeCards();
     }
     btn.addEventListener('touchend', function(e){ e.preventDefault(); selectChar(); }, {passive:false});
     btn.addEventListener('click', selectChar);

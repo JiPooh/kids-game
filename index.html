@@ -7,12 +7,21 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<!-- Single-page app: one #app with 6 sibling ".screen" divs (home + 5 games), only one
+     visible at a time via the "active" class. All logic lives in the <script> below;
+     see its top-of-file comments for the localStorage keys and how each system works. -->
 <div id="app">
 
   <!-- HOME SCREEN -->
   <div class="screen active" id="home">
-    <h1>🐰 토끼랑 놀이터</h1>
-    <div class="sub">하고 싶은 놀이를 골라보세요</div>
+    <div class="lang-picker" id="lang-picker">
+      <button class="lang-btn selected" data-lang="ko">한국어</button>
+      <button class="lang-btn" data-lang="en">English</button>
+      <button class="lang-btn" data-lang="zh">中文</button>
+    </div>
+    <button class="star-badge" id="star-badge" data-target="game-missions">⭐ <span id="home-star-count">0</span></button>
+    <h1 id="home-title">🐰 토끼랑 놀이터</h1>
+    <div class="sub" id="home-sub">하고 싶은 놀이를 골라보세요</div>
     <div class="char-picker" id="char-picker">
       <button class="char-btn selected" data-char="bunny">🐰</button>
       <button class="char-btn" data-char="shark">🦈</button>
@@ -27,11 +36,19 @@
       </button>
       <button class="game-card ready" data-target="game-hidden">
         <div class="emoji">🖼️</div>
-        <div class="label">숨은그림찾기</div>
+        <div class="label" id="hidden-card-label">숨은그림찾기</div>
+      </button>
+      <button class="game-card ready" data-target="game-match">
+        <div class="emoji">🧠</div>
+        <div class="label" id="match-card-label">짝 맞추기</div>
       </button>
       <button class="game-card ready" data-target="game-sort">
         <div class="emoji" id="sort-card-emoji">🥕🐇</div>
         <div class="label" id="sort-card-label">당근 먹이기</div>
+      </button>
+      <button class="game-card ready mission-card" data-target="game-missions">
+        <div class="emoji">🎯</div>
+        <div class="label" id="missions-card-label">오늘의 미션</div>
       </button>
     </div>
   </div>
@@ -42,7 +59,7 @@
     <div id="bunny-wrap"></div>
     <div id="sound-gate">
       <div style="font-size:44px;">🔊</div>
-      <div style="font-size:20px; font-weight:bold;">화면을 눌러서<br>소리를 켜주세요</div>
+      <div style="font-size:20px; font-weight:bold;" id="sound-gate-text">화면을 눌러서<br>소리를 켜주세요</div>
       <button class="tap-btn" id="unlock-btn">시작!</button>
     </div>
   </div>
@@ -68,13 +85,77 @@
     <div id="sort-bunny"></div>
   </div>
 
+  <!-- GAME 4: MATCH THE PAIRS -->
+  <div class="screen" id="game-match">
+    <button class="back-btn" data-home>←</button>
+    <div class="hidden-counter"><span id="match-found-num">0</span> / <span id="match-total-num">0</span> 🔗</div>
+    <div class="cheer-text" id="match-cheer-text">잘했어요! 🎉</div>
+    <div class="match-grid" id="match-grid"></div>
+  </div>
+
+  <!-- GAME 5: DAILY MISSIONS -->
+  <!-- Each .mission-item's data-mission must match a key in MISSION_TARGETS (index.html script).
+       Adding/removing a mission means editing both this block and that object together. -->
+  <div class="screen" id="game-missions">
+    <button class="back-btn" data-home>←</button>
+    <h2 id="missions-title">오늘의 미션</h2>
+    <div class="mission-stars">⭐ <span id="missions-star-count">0</span></div>
+    <div class="mission-list">
+      <div class="mission-item" data-mission="sortFed">
+        <div class="mission-icon">🍽️</div>
+        <div class="mission-info">
+          <div class="mission-label" id="mission-label-sortFed">오늘 먹이 10개 주기</div>
+          <div class="mission-bar"><div class="mission-bar-fill" id="mission-bar-sortFed"></div></div>
+          <div class="mission-progress" id="mission-progress-sortFed">0 / 10</div>
+        </div>
+        <div class="mission-check" id="mission-check-sortFed">✔️</div>
+      </div>
+      <div class="mission-item" data-mission="hiddenRounds">
+        <div class="mission-icon">🔍</div>
+        <div class="mission-info">
+          <div class="mission-label" id="mission-label-hiddenRounds">숨은그림찾기 2판 완성하기</div>
+          <div class="mission-bar"><div class="mission-bar-fill" id="mission-bar-hiddenRounds"></div></div>
+          <div class="mission-progress" id="mission-progress-hiddenRounds">0 / 2</div>
+        </div>
+        <div class="mission-check" id="mission-check-hiddenRounds">✔️</div>
+      </div>
+      <div class="mission-item" data-mission="sensoryTaps">
+        <div class="mission-icon">✋</div>
+        <div class="mission-info">
+          <div class="mission-label" id="mission-label-sensoryTaps">콕콕 20번 하기</div>
+          <div class="mission-bar"><div class="mission-bar-fill" id="mission-bar-sensoryTaps"></div></div>
+          <div class="mission-progress" id="mission-progress-sensoryTaps">0 / 20</div>
+        </div>
+        <div class="mission-check" id="mission-check-sensoryTaps">✔️</div>
+      </div>
+      <div class="mission-item" data-mission="matchRounds">
+        <div class="mission-icon">🔗</div>
+        <div class="mission-info">
+          <div class="mission-label" id="mission-label-matchRounds">짝 맞추기 1판 완성하기</div>
+          <div class="mission-bar"><div class="mission-bar-fill" id="mission-bar-matchRounds"></div></div>
+          <div class="mission-progress" id="mission-progress-matchRounds">0 / 1</div>
+        </div>
+        <div class="mission-check" id="mission-check-matchRounds">✔️</div>
+      </div>
+    </div>
+    <div class="cheer-text" id="missions-cheer-text">미션 완료! 최고예요! 🌟</div>
+  </div>
+
 </div>
 
 <script>
 (function(){
   "use strict";
 
+  // localStorage keys used by this app (all namespaced with "kg-" for "kids game"):
+  //   kg-lang            -> selected UI language ('ko' | 'en' | 'zh'), see I18N below
+  //   kg-missions-daily  -> today's mission progress, reset automatically when the date changes
+  //   kg-stars           -> lifetime star count, never reset (see Daily missions section)
+
   // ---------- Character system ----------
+  // selectedChar drives which artwork/food/labels show up across every game.
+  // To add a new character: add an entry to CHARACTER_IMAGES, MOUTH_HIT_POS, FOOD_ICON,
+  // FOOD_SETS (further down), and an I18N.<lang>.home.<char> block, plus a .char-btn in the HTML.
   var CHARACTER_IMAGES = {
     bunny: 'assets/bunny.svg',
     shark: 'assets/shark.svg',
@@ -92,23 +173,133 @@
   };
   var selectedChar = 'bunny';
 
-  var HOME_CARD_LABELS = {
-    bunny: { sensoryEmoji: '🐰✨', sensoryLabel: '토끼랑 콕콕', sortEmoji: '🥕🐇', sortLabel: '당근 먹이기' },
-    shark: { sensoryEmoji: '🦈✨', sensoryLabel: '상어랑 콕콕', sortEmoji: '🐟🦈', sortLabel: '물고기 먹이기' },
-    bear: { sensoryEmoji: '🐻✨', sensoryLabel: '곰이랑 콕콕', sortEmoji: '🍯🐻', sortLabel: '꿀 먹이기' },
-    dog: { sensoryEmoji: '🐶✨', sensoryLabel: '강아지랑 콕콕', sortEmoji: '🦴🐶', sortLabel: '간식 먹이기' },
-    dinosaur: { sensoryEmoji: '🦕✨', sensoryLabel: '공룡이랑 콕콕', sortEmoji: '🌿🦕', sortLabel: '나뭇잎 먹이기' }
+  // ---------- Language / i18n ----------
+  // Each top-level key is a language. To add a language: copy one of these blocks,
+  // translate every string (including the per-character "home" labels), and add a
+  // matching <button class="lang-btn" data-lang="..."> in the HTML lang-picker.
+  // applyLanguage() is what actually pushes these strings into the DOM.
+  var I18N = {
+    ko: {
+      title: '🐰 토끼랑 놀이터',
+      subtitle: '하고 싶은 놀이를 골라보세요',
+      hiddenLabel: '숨은그림찾기',
+      soundGateText: '화면을 눌러서<br>소리를 켜주세요',
+      startBtn: '시작!',
+      sortCheer: '잘했어요! 🎉',
+      hiddenCheer: '다 찾았어요! 🎉',
+      missionsCardLabel: '오늘의 미션',
+      missionsTitle: '오늘의 미션',
+      matchCardLabel: '짝 맞추기',
+      missionSortLabel: '오늘 먹이 10개 주기',
+      missionHiddenLabel: '숨은그림찾기 2판 완성하기',
+      missionSensoryLabel: '콕콕 20번 하기',
+      missionMatchLabel: '짝 맞추기 1판 완성하기',
+      missionsCheer: '미션 완료! 최고예요! 🌟',
+      home: {
+        bunny: { sensoryEmoji: '🐰✨', sensoryLabel: '토끼랑 콕콕', sortEmoji: '🥕🐇', sortLabel: '당근 먹이기' },
+        shark: { sensoryEmoji: '🦈✨', sensoryLabel: '상어랑 콕콕', sortEmoji: '🐟🦈', sortLabel: '물고기 먹이기' },
+        bear: { sensoryEmoji: '🐻✨', sensoryLabel: '곰이랑 콕콕', sortEmoji: '🍯🐻', sortLabel: '꿀 먹이기' },
+        dog: { sensoryEmoji: '🐶✨', sensoryLabel: '강아지랑 콕콕', sortEmoji: '🦴🐶', sortLabel: '간식 먹이기' },
+        dinosaur: { sensoryEmoji: '🦕✨', sensoryLabel: '공룡이랑 콕콕', sortEmoji: '🌿🦕', sortLabel: '나뭇잎 먹이기' }
+      }
+    },
+    en: {
+      title: '🐰 Bunny\'s Playground',
+      subtitle: 'Pick a game to play',
+      hiddenLabel: 'Hidden Pictures',
+      soundGateText: 'Tap the screen<br>to turn on sound',
+      startBtn: 'Start!',
+      sortCheer: 'Great job! 🎉',
+      hiddenCheer: 'You found them all! 🎉',
+      missionsCardLabel: "Today's Missions",
+      missionsTitle: "Today's Missions",
+      matchCardLabel: 'Match the Pairs',
+      missionSortLabel: 'Feed 10 times today',
+      missionHiddenLabel: 'Finish 2 hidden-picture rounds',
+      missionSensoryLabel: 'Poke 20 times',
+      missionMatchLabel: 'Finish 1 match-the-pairs round',
+      missionsCheer: 'All done! Amazing! 🌟',
+      home: {
+        bunny: { sensoryEmoji: '🐰✨', sensoryLabel: 'Poke the Bunny', sortEmoji: '🥕🐇', sortLabel: 'Feed the Carrot' },
+        shark: { sensoryEmoji: '🦈✨', sensoryLabel: 'Poke the Shark', sortEmoji: '🐟🦈', sortLabel: 'Feed the Fish' },
+        bear: { sensoryEmoji: '🐻✨', sensoryLabel: 'Poke the Bear', sortEmoji: '🍯🐻', sortLabel: 'Feed the Honey' },
+        dog: { sensoryEmoji: '🐶✨', sensoryLabel: 'Poke the Puppy', sortEmoji: '🦴🐶', sortLabel: 'Feed the Treat' },
+        dinosaur: { sensoryEmoji: '🦕✨', sensoryLabel: 'Poke the Dino', sortEmoji: '🌿🦕', sortLabel: 'Feed the Leaves' }
+      }
+    },
+    zh: {
+      title: '🐰 兔子游乐园',
+      subtitle: '选一个游戏开始玩吧',
+      hiddenLabel: '寻找隐藏图片',
+      soundGateText: '点击屏幕<br>打开声音',
+      startBtn: '开始!',
+      sortCheer: '做得好! 🎉',
+      hiddenCheer: '都找到了! 🎉',
+      missionsCardLabel: '今日任务',
+      missionsTitle: '今日任务',
+      matchCardLabel: '配对游戏',
+      missionSortLabel: '今天喂食10次',
+      missionHiddenLabel: '完成2轮找一找',
+      missionSensoryLabel: '戳一戳20次',
+      missionMatchLabel: '完成1轮配对游戏',
+      missionsCheer: '全部完成！太棒了！🌟',
+      home: {
+        bunny: { sensoryEmoji: '🐰✨', sensoryLabel: '戳一戳兔子', sortEmoji: '🥕🐇', sortLabel: '喂胡萝卜' },
+        shark: { sensoryEmoji: '🦈✨', sensoryLabel: '戳一戳鲨鱼', sortEmoji: '🐟🦈', sortLabel: '喂鱼' },
+        bear: { sensoryEmoji: '🐻✨', sensoryLabel: '戳一戳小熊', sortEmoji: '🍯🐻', sortLabel: '喂蜂蜜' },
+        dog: { sensoryEmoji: '🐶✨', sensoryLabel: '戳一戳小狗', sortEmoji: '🦴🐶', sortLabel: '喂零食' },
+        dinosaur: { sensoryEmoji: '🦕✨', sensoryLabel: '戳一戳恐龙', sortEmoji: '🌿🦕', sortLabel: '喂树叶' }
+      }
+    }
   };
+  var selectedLang = localStorage.getItem('kg-lang') || 'ko';
+  if (!I18N[selectedLang]) selectedLang = 'ko';
 
   var FOOD_ICON = { bunny: '🥕', shark: '🐟', bear: '🍯', dog: '🦴', dinosaur: '🌿' };
 
   function updateHomeCards(){
-    var labels = HOME_CARD_LABELS[selectedChar] || HOME_CARD_LABELS.bunny;
+    var labels = I18N[selectedLang].home[selectedChar] || I18N[selectedLang].home.bunny;
     document.getElementById('sensory-card-emoji').textContent = labels.sensoryEmoji;
     document.getElementById('sensory-card-label').textContent = labels.sensoryLabel;
     document.getElementById('sort-card-emoji').textContent = labels.sortEmoji;
     document.getElementById('sort-card-label').textContent = labels.sortLabel;
   }
+
+  function applyLanguage(){
+    var t = I18N[selectedLang];
+    document.getElementById('home-title').textContent = t.title;
+    document.getElementById('home-sub').textContent = t.subtitle;
+    document.getElementById('hidden-card-label').textContent = t.hiddenLabel;
+    document.getElementById('sound-gate-text').innerHTML = t.soundGateText;
+    document.getElementById('unlock-btn').textContent = t.startBtn;
+    document.getElementById('cheer-text').textContent = t.sortCheer;
+    document.getElementById('hidden-cheer-text').textContent = t.hiddenCheer;
+    document.getElementById('missions-card-label').textContent = t.missionsCardLabel;
+    document.getElementById('missions-title').textContent = t.missionsTitle;
+    document.getElementById('match-card-label').textContent = t.matchCardLabel;
+    document.getElementById('mission-label-sortFed').textContent = t.missionSortLabel;
+    document.getElementById('mission-label-hiddenRounds').textContent = t.missionHiddenLabel;
+    document.getElementById('mission-label-sensoryTaps').textContent = t.missionSensoryLabel;
+    document.getElementById('mission-label-matchRounds').textContent = t.missionMatchLabel;
+    document.getElementById('missions-cheer-text').textContent = t.missionsCheer;
+    document.documentElement.lang = selectedLang === 'zh' ? 'zh-CN' : selectedLang;
+    updateHomeCards();
+  }
+
+  document.querySelectorAll('.lang-btn').forEach(function(btn){
+    function selectLang(){
+      selectedLang = btn.getAttribute('data-lang');
+      localStorage.setItem('kg-lang', selectedLang);
+      document.querySelectorAll('.lang-btn').forEach(function(b){ b.classList.toggle('selected', b === btn); });
+      applyLanguage();
+    }
+    btn.addEventListener('touchend', function(e){ e.preventDefault(); selectLang(); }, {passive:false});
+    btn.addEventListener('click', selectLang);
+  });
+  document.querySelectorAll('.lang-btn').forEach(function(b){
+    b.classList.toggle('selected', b.getAttribute('data-lang') === selectedLang);
+  });
+  applyLanguage();
 
   function renderSensoryChar(){
     var el = document.getElementById('bunny-wrap');
@@ -137,7 +328,104 @@
     btn.addEventListener('click', selectChar);
   });
 
+  // ---------- Daily missions ----------
+  // One mission = one key here. To add a mission: add a "key: target" pair below,
+  // then add matching HTML in the #game-missions screen (a .mission-item with
+  // data-mission="key" and elements with ids mission-label-key / mission-bar-key /
+  // mission-progress-key / mission-check-key), an I18N label for it, and call
+  // incrementMission('key', n) from wherever that gameplay event happens.
+  // loadMissionState() below fills in defaults for any key it doesn't recognize yet,
+  // so old saved state won't break when a new mission is added later.
+  var MISSION_TARGETS = { sortFed: 10, hiddenRounds: 2, sensoryTaps: 20, matchRounds: 1 };
+  var todayStr = new Date().toISOString().slice(0,10);
+  var missionState = loadMissionState();
+
+  // Reads today's saved progress, or starts fresh if it's a new day (date mismatch).
+  function loadMissionState(){
+    var raw = null;
+    try { raw = JSON.parse(localStorage.getItem('kg-missions-daily')); } catch(e){}
+    if (!raw || raw.date !== todayStr){
+      raw = { date: todayStr, progress: {}, claimed: {}, allDoneShown: false };
+    }
+    raw.progress = raw.progress || {};
+    raw.claimed = raw.claimed || {};
+    Object.keys(MISSION_TARGETS).forEach(function(key){
+      if (typeof raw.progress[key] !== 'number') raw.progress[key] = 0;
+      if (typeof raw.claimed[key] !== 'boolean') raw.claimed[key] = false;
+    });
+    return raw;
+  }
+  function saveMissionState(){
+    localStorage.setItem('kg-missions-daily', JSON.stringify(missionState));
+  }
+  function getTotalStars(){
+    return parseInt(localStorage.getItem('kg-stars') || '0', 10);
+  }
+  function addStar(){
+    var s = getTotalStars() + 1;
+    localStorage.setItem('kg-stars', String(s));
+    return s;
+  }
+  function renderStarCounts(){
+    var s = String(getTotalStars());
+    document.getElementById('home-star-count').textContent = s;
+    document.getElementById('missions-star-count').textContent = s;
+  }
+  function renderMissionItem(key){
+    var target = MISSION_TARGETS[key];
+    var value = missionState.progress[key];
+    var pct = Math.min(100, Math.round(value/target*100));
+    var barEl = document.getElementById('mission-bar-'+key);
+    var progEl = document.getElementById('mission-progress-'+key);
+    var itemEl = document.querySelector('.mission-item[data-mission="'+key+'"]');
+    if (barEl) barEl.style.width = pct + '%';
+    if (progEl) progEl.textContent = value + ' / ' + target;
+    if (itemEl) itemEl.classList.toggle('done', value >= target);
+  }
+  function renderAllMissions(){
+    Object.keys(MISSION_TARGETS).forEach(renderMissionItem);
+    renderStarCounts();
+  }
+  function celebrateAllMissionsIfDone(){
+    var allDone = Object.keys(MISSION_TARGETS).every(function(key){
+      return missionState.progress[key] >= MISSION_TARGETS[key];
+    });
+    if (allDone && !missionState.allDoneShown){
+      missionState.allDoneShown = true;
+      saveMissionState();
+      var el = document.getElementById('missions-cheer-text');
+      el.classList.remove('show');
+      void el.offsetWidth;
+      el.classList.add('show');
+      playFanfare();
+      var w = window.innerWidth;
+      for (var i=0; i<14; i++){
+        spawnParticle(document.getElementById('game-missions'), w/2 + (Math.random()-0.5)*160, window.innerHeight*0.35);
+      }
+    }
+  }
+  // Call this from gameplay code whenever progress toward a mission happens.
+  // "claimed" guards the one-time star reward so re-triggering the same mission
+  // (e.g. feeding a 15th carrot after the 10-carrot mission is already done) is a no-op.
+  function incrementMission(key, amount){
+    var target = MISSION_TARGETS[key];
+    if (missionState.progress[key] >= target) return;
+    missionState.progress[key] = Math.min(missionState.progress[key] + amount, target);
+    if (missionState.progress[key] >= target && !missionState.claimed[key]){
+      missionState.claimed[key] = true;
+      addStar();
+    }
+    saveMissionState();
+    renderMissionItem(key);
+    renderStarCounts();
+    celebrateAllMissionsIfDone();
+  }
+  renderStarCounts();
+
   // ---------- Navigation ----------
+  // Screens are just divs toggled with the CSS "active" class (see .screen/.screen.active
+  // in style.css) - nothing is ever removed from the DOM, so per-game state (carrot
+  // positions, match board, etc.) survives navigating back to home and returning.
   var screens = document.querySelectorAll('.screen');
   function showScreen(id){
     screens.forEach(function(s){ s.classList.toggle('active', s.id === id); });
@@ -147,6 +435,7 @@
       var target = btn.getAttribute('data-target');
       if (target === 'game-sensory') renderSensoryChar();
       if (target === 'game-sort') renderSortChar();
+      if (target === 'game-missions') renderAllMissions();
       showScreen(target);
     }
     btn.addEventListener('touchend', function(e){
@@ -220,6 +509,10 @@
   unlockBtn.addEventListener('click', unlockAudio);
 
   // ---------- Sensory game: particles ----------
+  // Free-form poking game: every tap spawns a floating particle plus either a
+  // "happy" bounce (tap landed on the character) or a pop sound + background flash
+  // (tap missed). isTouchOnBunny() does the hit test with a simple circle radius
+  // check against the character wrapper's bounding box.
   var gameEl = document.getElementById('game-sensory');
   var bunnyWrap = document.getElementById('bunny-wrap');
   var palette = ['#FF8FA3','#FFD966','#8CD790','#8FD3FF','#C9A6E0'];
@@ -296,6 +589,7 @@
         playPop();
         flashBackground();
       }
+      incrementMission('sensoryTaps', 1);
     }
   }
 
@@ -311,6 +605,11 @@
   });
 
   // ---------- Carrot feeding game ----------
+  // Drag-and-drop: each food item is an absolutely-positioned div dragged by touch/mouse
+  // (see bindCarrotDrag/finishDrag). On drop, finishDrag() checks the distance from the
+  // food's center to the invisible #mouth-hit hitbox (positioned per-character via
+  // MOUTH_HIT_POS above) - close enough counts as "fed" and respawns a new item in
+  // that slot, otherwise it springs back to its home position.
   function playChomp(){
     playTone(220, 0.12, 0, 0.28);
     playTone(150, 0.16, 0.06, 0.22);
@@ -452,6 +751,7 @@
     reactSortBunny();
     fedCount++;
     countNumEl.textContent = String(fedCount);
+    incrementMission('sortFed', 1);
     if (fedCount % 5 === 0){
       playCheer();
       showCheer();
@@ -511,6 +811,9 @@
   }
 
   // ---------- Hidden picture game ----------
+  // A "round" is one array from hiddenItemSets rendered at fixed hiddenPositions
+  // (as % of screen size). Finding every spot in a round advances hiddenRound and
+  // rebuilds with the next set, cycling back to the first once they're all used.
   function playChime(){
     playTone(880, 0.16, 0, 0.22);
     playTone(1180, 0.18, 0.07, 0.18);
@@ -577,6 +880,7 @@
       hiddenFound++;
       hiddenFoundNumEl.textContent = String(hiddenFound);
       if (hiddenFound >= hiddenTotal){
+        incrementMission('hiddenRounds', 1);
         setTimeout(function(){
           playFanfare();
           hiddenCheerEl.classList.remove('show');
@@ -602,6 +906,127 @@
     if (hiddenInitialized) return;
     hiddenInitialized = true;
     buildHiddenRound();
+  }
+
+  // ---------- Match the pairs game ----------
+  // Classic memory-match: buildMatchRound() takes one emoji set from matchItemSets,
+  // duplicates it into pairs, and shuffles the deck into 12 face-down cards.
+  // matchFlipped tracks the 0-2 currently face-up unmatched cards; matchLocked blocks
+  // further taps while a pair is being checked so a third card can't be flipped mid-check.
+  // Clearing a full board advances matchRoundIdx to the next themed set (cycling around).
+  function playFlip(){
+    playTone(700, 0.09, 0, 0.15);
+  }
+  function playMismatch(){
+    playTone(260, 0.14, 0, 0.16);
+  }
+
+  var matchEl = document.getElementById('game-match');
+  var matchGridEl = document.getElementById('match-grid');
+  var matchFoundNumEl = document.getElementById('match-found-num');
+  var matchTotalNumEl = document.getElementById('match-total-num');
+  var matchCheerEl = document.getElementById('match-cheer-text');
+  var matchItemSets = [
+    ['🍎','🍌','🍇','🍉','🍓','🍒'],
+    ['⚽','🏀','🎾','🏈','🎱','🥎'],
+    ['🚗','🚕','🚌','🚓','🚑','🚒'],
+    ['🐱','🐶','🦁','🐯','🐼','🐵']
+  ];
+  var matchRoundIdx = 0;
+  var matchFound = 0;
+  var matchTotal = 0;
+  var matchFlipped = [];
+  var matchLocked = false;
+
+  function shuffle(arr){
+    for (var i = arr.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+    }
+    return arr;
+  }
+
+  function buildMatchRound(){
+    matchGridEl.innerHTML = '';
+    matchFound = 0;
+    matchFlipped = [];
+    matchLocked = false;
+    var items = matchItemSets[matchRoundIdx % matchItemSets.length];
+    matchTotal = items.length;
+    matchFoundNumEl.textContent = String(matchFound);
+    matchTotalNumEl.textContent = String(matchTotal);
+    var cards = shuffle(items.concat(items));
+    cards.forEach(function(value){
+      var card = document.createElement('button');
+      card.className = 'match-card';
+      card.dataset.value = value;
+      card.innerHTML = '<span class="match-card-face">❓</span>';
+      bindMatchCard(card);
+      matchGridEl.appendChild(card);
+    });
+  }
+
+  function bindMatchCard(card){
+    function flip(){
+      if (matchLocked) return;
+      if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+      card.classList.add('flipped');
+      card.querySelector('.match-card-face').textContent = card.dataset.value;
+      ensureCtx();
+      playFlip();
+      matchFlipped.push(card);
+      if (matchFlipped.length === 2){
+        matchLocked = true;
+        var a = matchFlipped[0], b = matchFlipped[1];
+        if (a.dataset.value === b.dataset.value){
+          playChime();
+          setTimeout(function(){
+            a.classList.add('matched');
+            b.classList.add('matched');
+            matchFound++;
+            matchFoundNumEl.textContent = String(matchFound);
+            matchFlipped = [];
+            matchLocked = false;
+            if (matchFound >= matchTotal){
+              incrementMission('matchRounds', 1);
+              setTimeout(function(){
+                playFanfare();
+                matchCheerEl.classList.remove('show');
+                void matchCheerEl.offsetWidth;
+                matchCheerEl.classList.add('show');
+                var w = window.innerWidth;
+                for (var i=0; i<14; i++){
+                  spawnParticle(matchEl, w/2 + (Math.random()-0.5)*160, window.innerHeight*0.35);
+                }
+                matchRoundIdx++;
+                setTimeout(buildMatchRound, 1400);
+              }, 300);
+            }
+          }, 450);
+        } else {
+          playMismatch();
+          setTimeout(function(){
+            a.classList.remove('flipped');
+            b.classList.remove('flipped');
+            a.querySelector('.match-card-face').textContent = '❓';
+            b.querySelector('.match-card-face').textContent = '❓';
+            matchFlipped = [];
+            matchLocked = false;
+          }, 700);
+        }
+      }
+    }
+    card.addEventListener('touchend', function(e){ e.preventDefault(); flip(); }, {passive:false});
+    card.addEventListener('click', flip);
+  }
+
+  var matchInitialized = false;
+  document.querySelector('[data-target="game-match"]').addEventListener('click', initMatchGame);
+  document.querySelector('[data-target="game-match"]').addEventListener('touchend', initMatchGame);
+  function initMatchGame(){
+    if (matchInitialized) return;
+    matchInitialized = true;
+    buildMatchRound();
   }
 
 })();

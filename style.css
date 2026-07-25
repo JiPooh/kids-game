@@ -1,3 +1,4 @@
+/* Shared color palette - reused via var(--name) in every section below. */
 :root{
   --sky:#BFE9FF;
   --sun:#FFD966;
@@ -9,6 +10,8 @@
 html,body{
   margin:0; padding:0; width:100%; height:100%;
   overscroll-behavior:none;
+  /* touch-action:none + the touchmove/gesturestart handlers in index.html together
+     stop iOS from pinch-zooming, double-tap-zooming, or pull-to-refreshing mid-game. */
   touch-action:none;
   -webkit-user-select:none; user-select:none;
   -webkit-touch-callout:none;
@@ -20,6 +23,8 @@ html,body{
   position:fixed; inset:0;
   width:100%; height:100%;
 }
+/* Screen switching mechanism: index.html's showScreen() just toggles this "active"
+   class, so only one screen is ever display:flex at a time; the rest stay display:none. */
 .screen{
   position:absolute; inset:0;
   display:none;
@@ -75,6 +80,41 @@ html,body{
 .game-card .badge{
   font-size:11px; background:rgba(255,255,255,0.85); color:var(--plum);
   padding:3px 10px; border-radius:20px; font-weight:bold;
+}
+
+/* ---------- LANGUAGE PICKER ---------- */
+.lang-picker{
+  position:absolute; top:14px; right:14px;
+  display:flex; gap:6px;
+  z-index:20;
+}
+.lang-btn{
+  border:2px solid transparent;
+  background:white;
+  color:var(--plum);
+  font-weight:bold;
+  font-size:12px;
+  padding:6px 10px;
+  border-radius:16px;
+  box-shadow:0 3px 0 rgba(0,0,0,0.1);
+}
+.lang-btn.selected{
+  border-color:var(--sun);
+  box-shadow:0 3px 0 rgba(0,0,0,0.1), 0 0 0 3px rgba(255,217,102,0.4);
+}
+
+.star-badge{
+  position:absolute; top:14px; left:14px;
+  border:none;
+  background:white;
+  color:var(--plum);
+  font-weight:bold;
+  font-size:15px;
+  padding:8px 14px;
+  border-radius:20px;
+  box-shadow:0 3px 0 rgba(0,0,0,0.1);
+  z-index:20;
+  display:flex; align-items:center; gap:4px;
 }
 
 /* ---------- CHARACTER PICKER ---------- */
@@ -175,6 +215,9 @@ html,body{
   z-index:5;
 }
 #sort-bunny.eating .char-img{ animation:charBounce .4s ease; }
+/* Invisible drop-target box for the feeding game. Its left/top come from
+   MOUTH_HIT_POS in index.html (per character, since the mouth sits in a
+   different spot on each SVG) - it has no visuals, only a hit-test rect. */
 #mouth-hit{
   position:absolute; left:50%; top:70%;
   width:28%; height:20%;
@@ -255,3 +298,96 @@ html,body{
   45%{ transform:translate(-50%,-50%) scale(1.4); }
   100%{ transform:translate(-50%,-50%) scale(1.08); }
 }
+
+/* ---------- MATCH THE PAIRS GAME ---------- */
+#game-match{
+  background:linear-gradient(180deg,#F3E6FF 0%,#E4D2FA 100%);
+  position:absolute; inset:0;
+  overflow:hidden;
+}
+.match-grid{
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:min(2.5vw,10px);
+  width:min(88vw,420px);
+}
+.match-card{
+  width:100%; aspect-ratio:1/1;
+  border:none; border-radius:16px;
+  background:var(--coral);
+  display:flex; align-items:center; justify-content:center;
+  font-size:clamp(20px,6vw,32px);
+  box-shadow:0 4px 0 rgba(0,0,0,0.12);
+  transition:transform .12s ease, background-color .2s ease;
+}
+.match-card:active{ transform:scale(0.94); }
+.match-card.flipped{ background:white; animation:matchPop .3s ease; }
+.match-card.matched{ background:#EFFCEF; opacity:0.75; }
+@keyframes matchPop{
+  0%{ transform:scale(0.85) rotate(-4deg); }
+  60%{ transform:scale(1.1) rotate(2deg); }
+  100%{ transform:scale(1) rotate(0deg); }
+}
+
+/* ---------- DAILY MISSIONS ---------- */
+#game-missions{
+  background:linear-gradient(180deg,#FFF3D6 0%,#FFE9BF 100%);
+  gap:14px;
+  padding:16px;
+  box-sizing:border-box;
+}
+#game-missions h2{
+  color:var(--plum);
+  font-size:clamp(22px,5vw,32px);
+  margin:0;
+}
+.mission-stars{
+  color:var(--plum);
+  font-weight:bold;
+  font-size:18px;
+  background:white;
+  padding:6px 16px;
+  border-radius:20px;
+  box-shadow:0 3px 0 rgba(0,0,0,0.1);
+}
+.mission-list{
+  display:flex; flex-direction:column; gap:14px;
+  width:min(92vw,420px);
+}
+.mission-item{
+  display:flex; align-items:center; gap:12px;
+  background:white;
+  border-radius:20px;
+  padding:12px 14px;
+  box-shadow:0 4px 0 rgba(0,0,0,0.08);
+}
+.mission-icon{ font-size:30px; flex:0 0 auto; }
+.mission-info{ flex:1 1 auto; min-width:0; }
+.mission-label{
+  color:var(--plum); font-weight:bold; font-size:14px;
+  margin-bottom:6px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.mission-bar{
+  width:100%; height:10px;
+  background:#EFE6D8;
+  border-radius:6px;
+  overflow:hidden;
+}
+.mission-bar-fill{
+  height:100%; width:0%;
+  background:var(--grass);
+  border-radius:6px;
+  transition:width .3s ease;
+}
+.mission-progress{
+  font-size:12px; color:var(--plum); opacity:0.7; margin-top:4px;
+}
+.mission-check{
+  flex:0 0 auto; font-size:22px;
+  opacity:0.15;
+  transition:opacity .3s ease, transform .3s ease;
+  transform:scale(0.8);
+}
+.mission-item.done .mission-check{ opacity:1; transform:scale(1.1); }
+.mission-item.done{ background:#EFFCEF; }

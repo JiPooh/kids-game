@@ -73,8 +73,14 @@
     <div class="bush" style="width:160px; height:76px; right:-24px; bottom:-20px;"></div>
     <div class="bush" style="width:96px; height:52px; left:36%; bottom:-22px;"></div>
     <div class="hidden-counter"><span id="hidden-found-num">0</span> / <span id="hidden-total-num">0</span> 🔍</div>
+    <div class="hidden-order-strip" id="hidden-order-strip"></div>
     <div class="cheer-text" id="hidden-cheer-text">다 찾았어요! 🎉</div>
     <div id="hidden-scene"></div>
+    <div class="hidden-mode-picker" id="hidden-mode-picker">
+      <div class="hidden-mode-picker-title" id="hidden-mode-picker-title">어떻게 찾아볼까요?</div>
+      <button class="hidden-mode-picker-btn" data-hidden-mode="order" id="hidden-mode-picker-order"></button>
+      <button class="hidden-mode-picker-btn" data-hidden-mode="free" id="hidden-mode-picker-free"></button>
+    </div>
   </div>
 
   <!-- GAME 3: CARROT FEEDING -->
@@ -148,9 +154,10 @@
   "use strict";
 
   // localStorage keys used by this app (all namespaced with "kg-" for "kids game"):
-  //   kg-lang            -> selected UI language ('ko' | 'en' | 'zh'), see I18N below
-  //   kg-missions-daily  -> today's mission progress, reset automatically when the date changes
-  //   kg-stars           -> lifetime star count, never reset (see Daily missions section)
+  //   kg-lang               -> selected UI language ('ko' | 'en' | 'zh'), see I18N below
+  //   kg-missions-daily     -> today's mission progress, reset automatically when the date changes
+  //   kg-stars              -> lifetime star count, never reset (see Daily missions section)
+  //   kg-hidden-order-mode  -> 'on' | 'off', whether hidden-picture targets must be found in order
 
   // ---------- Character system ----------
   // selectedChar drives which artwork/food/labels show up across every game.
@@ -183,6 +190,9 @@
       title: '🐰 토끼랑 놀이터',
       subtitle: '하고 싶은 놀이를 골라보세요',
       hiddenLabel: '숨은그림찾기',
+      hiddenModePickerTitle: '어떻게 찾아볼까요?',
+      hiddenModePickerOrder: '🔢 순서대로 찾기',
+      hiddenModePickerFree: '🔀 자유롭게 찾기',
       soundGateText: '화면을 눌러서<br>소리를 켜주세요',
       startBtn: '시작!',
       sortCheer: '잘했어요! 🎉',
@@ -207,6 +217,9 @@
       title: '🐰 Bunny\'s Playground',
       subtitle: 'Pick a game to play',
       hiddenLabel: 'Hidden Pictures',
+      hiddenModePickerTitle: 'How should we find them?',
+      hiddenModePickerOrder: '🔢 Find in Order',
+      hiddenModePickerFree: '🔀 Find Freely',
       soundGateText: 'Tap the screen<br>to turn on sound',
       startBtn: 'Start!',
       sortCheer: 'Great job! 🎉',
@@ -231,6 +244,9 @@
       title: '🐰 兔子游乐园',
       subtitle: '选一个游戏开始玩吧',
       hiddenLabel: '寻找隐藏图片',
+      hiddenModePickerTitle: '要怎么找呢？',
+      hiddenModePickerOrder: '🔢 按顺序找',
+      hiddenModePickerFree: '🔀 随意找',
       soundGateText: '点击屏幕<br>打开声音',
       startBtn: '开始!',
       sortCheer: '做得好! 🎉',
@@ -255,6 +271,11 @@
   var selectedLang = localStorage.getItem('kg-lang') || 'ko';
   if (!I18N[selectedLang]) selectedLang = 'ko';
 
+  // Whether the hidden-picture game requires finding targets in the shown
+  // order, or accepts any order. A younger sibling can turn this off from
+  // the toggle button on that screen; the older one can leave it on.
+  var hiddenOrderMode = (localStorage.getItem('kg-hidden-order-mode') || 'on') === 'on';
+
   var FOOD_ICON = { bunny: '🥕', shark: '🐟', bear: '🍯', dog: '🦴', dinosaur: '🌿' };
 
   function updateHomeCards(){
@@ -274,6 +295,9 @@
     document.getElementById('unlock-btn').textContent = t.startBtn;
     document.getElementById('cheer-text').textContent = t.sortCheer;
     document.getElementById('hidden-cheer-text').textContent = t.hiddenCheer;
+    document.getElementById('hidden-mode-picker-title').textContent = t.hiddenModePickerTitle;
+    document.getElementById('hidden-mode-picker-order').textContent = t.hiddenModePickerOrder;
+    document.getElementById('hidden-mode-picker-free').textContent = t.hiddenModePickerFree;
     document.getElementById('missions-card-label').textContent = t.missionsCardLabel;
     document.getElementById('missions-title').textContent = t.missionsTitle;
     document.getElementById('match-card-label').textContent = t.matchCardLabel;
@@ -811,9 +835,10 @@
   }
 
   // ---------- Hidden picture game ----------
-  // A "round" is one array from hiddenItemSets rendered at fixed hiddenPositions
-  // (as % of screen size). Finding every spot in a round advances hiddenRound and
-  // rebuilds with the next set, cycling back to the first once they're all used.
+  // A "round" picks a random subset of a theme's emoji, places them at random
+  // slots from hiddenPositionPool, and requires clicking them in a randomized
+  // order (shown in hiddenOrderEl). Item count and decoy clutter both grow
+  // with hiddenRound, so later rounds are harder to spot and finish.
   function playChime(){
     playTone(880, 0.16, 0, 0.22);
     playTone(1180, 0.18, 0.07, 0.18);
@@ -829,47 +854,119 @@
   var hiddenFoundNumEl = document.getElementById('hidden-found-num');
   var hiddenTotalNumEl = document.getElementById('hidden-total-num');
   var hiddenCheerEl = document.getElementById('hidden-cheer-text');
-  var hiddenPositions = [
-    {x:0.22, y:0.32},
-    {x:0.76, y:0.24},
-    {x:0.50, y:0.52},
-    {x:0.18, y:0.74},
-    {x:0.80, y:0.70}
+  var hiddenOrderEl = document.getElementById('hidden-order-strip');
+
+  // Larger pool of spot slots (as % of screen) so each round can pick a fresh
+  // random layout instead of always repeating the same 5 fixed spots.
+  var hiddenPositionPool = [
+    {x:0.14, y:0.30}, {x:0.32, y:0.20}, {x:0.50, y:0.34}, {x:0.68, y:0.22}, {x:0.86, y:0.32},
+    {x:0.20, y:0.55}, {x:0.42, y:0.62}, {x:0.60, y:0.50}, {x:0.78, y:0.60},
+    {x:0.16, y:0.80}, {x:0.50, y:0.82}, {x:0.84, y:0.78}
   ];
-  var hiddenItemSets = [
-    ['⭐','🌸','🍎','🦋','💛'],
-    ['🍄','🎈','🍒','🐝','🌼'],
-    ['🌟','🍭','🐞','🌈','🍓']
+  var hiddenThemes = [
+    ['⭐','🌸','🍎','🦋','💛','🍀','🎀','🌼'],
+    ['🍄','🎈','🍒','🐝','🌼','🍉','🧸','🐞'],
+    ['🌟','🍭','🐞','🌈','🍓','🍋','🎁','🌻']
   ];
+  // Non-clickable clutter drawn behind/around the real targets to make them
+  // harder to spot; count grows with the round.
+  var hiddenDecoyPool = ['🍃','🌿','🪨','☁️','🌾','🍂','💧','⚪','🔸','🔹'];
+
   var hiddenRound = 0;
   var hiddenFound = 0;
   var hiddenTotal = 0;
+  var hiddenOrder = [];
+  var hiddenStep = 0;
+  var hiddenFoundEmojis = {};
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for (var i=a.length-1; i>0; i--){
+      var j = Math.floor(Math.random()*(i+1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
 
   function buildHiddenRound(){
     hiddenSceneEl.innerHTML = '';
     hiddenFound = 0;
-    var items = hiddenItemSets[hiddenRound % hiddenItemSets.length];
+    hiddenStep = 0;
+    hiddenFoundEmojis = {};
+
+    var theme = hiddenThemes[hiddenRound % hiddenThemes.length];
+    var itemCount = Math.min(4 + hiddenRound, theme.length, hiddenPositionPool.length);
+    var items = shuffle(theme).slice(0, itemCount);
+    hiddenOrder = shuffle(items);
     hiddenTotal = items.length;
     hiddenFoundNumEl.textContent = String(hiddenFound);
     hiddenTotalNumEl.textContent = String(hiddenTotal);
 
+    var positions = shuffle(hiddenPositionPool).slice(0, items.length);
     var w = window.innerWidth, h = window.innerHeight;
     items.forEach(function(emoji, i){
-      var pos = hiddenPositions[i % hiddenPositions.length];
+      var pos = positions[i];
       var spot = document.createElement('div');
       spot.className = 'hidden-spot';
       spot.textContent = emoji;
       spot.style.left = (w*pos.x) + 'px';
       spot.style.top = (h*pos.y) + 'px';
       spot.dataset.found = '0';
+      spot.dataset.emoji = emoji;
       bindHiddenSpot(spot);
       hiddenSceneEl.appendChild(spot);
     });
+
+    var decoyCount = Math.min(3 + hiddenRound*2, 14);
+    for (var d=0; d<decoyCount; d++){
+      var decoy = document.createElement('div');
+      decoy.className = 'hidden-decoy';
+      decoy.textContent = hiddenDecoyPool[Math.floor(Math.random()*hiddenDecoyPool.length)];
+      decoy.style.left = (w*(0.08 + Math.random()*0.84)) + 'px';
+      decoy.style.top = (h*(0.20 + Math.random()*0.65)) + 'px';
+      hiddenSceneEl.appendChild(decoy);
+    }
+
+    buildOrderStrip();
+  }
+
+  // The strip always shows every target the child is hunting for, so decoys
+  // never leave them guessing what to look for. In order mode only the
+  // current step pulses ("active"); in free mode every remaining target is
+  // shown as "available" since any of them can be tapped next.
+  function buildOrderStrip(){
+    hiddenOrderEl.innerHTML = '';
+    hiddenOrder.forEach(function(emoji, i){
+      var chip = document.createElement('div');
+      chip.className = 'hidden-order-item' + (hiddenOrderMode ? (i === 0 ? ' active' : '') : ' available');
+      chip.textContent = emoji;
+      hiddenOrderEl.appendChild(chip);
+    });
+  }
+
+  function updateOrderStrip(){
+    var chips = hiddenOrderEl.children;
+    for (var i=0; i<chips.length; i++){
+      chips[i].classList.remove('active', 'available', 'done');
+      if (hiddenFoundEmojis[hiddenOrder[i]]){
+        chips[i].classList.add('done');
+      } else if (hiddenOrderMode){
+        if (i === hiddenStep) chips[i].classList.add('active');
+      } else {
+        chips[i].classList.add('available');
+      }
+    }
   }
 
   function bindHiddenSpot(spot){
     function reveal(){
       if (spot.dataset.found === '1') return;
+      if (hiddenOrderMode && spot.dataset.emoji !== hiddenOrder[hiddenStep]){
+        spot.classList.remove('shake');
+        void spot.offsetWidth;
+        spot.classList.add('shake');
+        return;
+      }
       spot.dataset.found = '1';
       spot.classList.add('found');
       ensureCtx();
@@ -878,7 +975,10 @@
       var cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
       for (var i=0; i<8; i++){ spawnParticle(hiddenEl, cx, cy); }
       hiddenFound++;
+      hiddenFoundEmojis[spot.dataset.emoji] = true;
       hiddenFoundNumEl.textContent = String(hiddenFound);
+      if (hiddenOrderMode) hiddenStep++;
+      updateOrderStrip();
       if (hiddenFound >= hiddenTotal){
         incrementMission('hiddenRounds', 1);
         setTimeout(function(){
@@ -899,14 +999,40 @@
     spot.addEventListener('click', reveal);
   }
 
+  // The order/free choice is made once, up front, via a full-screen picker -
+  // never mid-round - so switching modes can't leave a round's spots/strip
+  // in a half-updated state. Leaving the screen (resetHiddenGame) clears
+  // everything so the picker always reappears on the next visit.
+  var hiddenModePickerEl = document.getElementById('hidden-mode-picker');
+  document.querySelectorAll('#hidden-mode-picker [data-hidden-mode]').forEach(function(btn){
+    function pick(){
+      hiddenOrderMode = btn.getAttribute('data-hidden-mode') === 'order';
+      localStorage.setItem('kg-hidden-order-mode', hiddenOrderMode ? 'on' : 'off');
+      hiddenModePickerEl.classList.remove('show');
+      buildHiddenRound();
+    }
+    btn.addEventListener('touchend', function(e){ e.preventDefault(); pick(); }, {passive:false});
+    btn.addEventListener('click', pick);
+  });
+
   var hiddenInitialized = false;
   document.querySelector('[data-target="game-hidden"]').addEventListener('click', initHiddenGame);
   document.querySelector('[data-target="game-hidden"]').addEventListener('touchend', initHiddenGame);
   function initHiddenGame(){
     if (hiddenInitialized) return;
     hiddenInitialized = true;
-    buildHiddenRound();
+    hiddenModePickerEl.classList.add('show');
   }
+
+  function resetHiddenGame(){
+    hiddenInitialized = false;
+    hiddenRound = 0;
+    hiddenSceneEl.innerHTML = '';
+    hiddenOrderEl.innerHTML = '';
+    hiddenModePickerEl.classList.remove('show');
+  }
+  document.querySelector('#game-hidden .back-btn').addEventListener('click', resetHiddenGame);
+  document.querySelector('#game-hidden .back-btn').addEventListener('touchend', resetHiddenGame);
 
   // ---------- Match the pairs game ----------
   // Classic memory-match: buildMatchRound() takes one emoji set from matchItemSets,
